@@ -1,0 +1,190 @@
+---
+title: "Project 1"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: journal
+  
+---
+
+```{r setup, include=FALSE}
+
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+                                                                          # 
+theme_set(                                #this sets the theme for all    #
+theme_tufte() +                         #plots that we make               #
+theme(text=element_text(family="sans")) +                                 #
+theme(axis.text.x = element_text(angle=-90))                              #
+)                                                                         #
+                                                                          #
+                                                                          #
+ Cirpdata<- read_csv("CIRP_DATA_2014_CLEAN.csv")                          #                                                                                                            #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+```{r}
+setnames(Cirpdata , old=c("SEX",
+                     "HSGPA",
+                     "YRSTUDY1",
+                     "YRSTUDY2",
+                     "YRSTUDY4",
+                     "YRSTUDY5",
+                     "YRSTUDY8",
+                     "RATE01",
+                     "RATE03",
+                     "RATE07",
+                     "RATE08",
+                     "RATE10",
+                     "RATE11",
+                     "RATE13",
+                     "RATE14",
+                     "RATE15",
+                     "RATE16",
+                     "RATE20",
+                     "HPW01",
+                     "HPW02",
+                     "HPW04",
+                     "HPW06",
+                     "HPW07",
+                     "HPW08",
+                     "HPW09",
+                     "HPW11",
+                     "HPW12",
+                     "HPW13"), 
+              new=c("Sex",
+                    "HighSchoolGPA",
+                    "English",
+                    "Math",
+                    "PhysicalScience",
+                    "BiologicalScience",
+                    "ArtsandMusic",
+                    "AcedemicAbility",
+                    "Competitivness",
+                    "DrivetoAchieve",
+                    "EmotionalHealth",
+                    "Mathematicability",
+                    "Physicalhealth",
+                    "Publicspeakingability",
+                    "RiskTaking",
+                    "SelfConfidenceIntellectual",
+                    "SelfConfidenceSocial",
+                    "Writingability",
+                    "StudyingHomework",
+                    "Socializing",
+                    "Excersizesport",
+                    "Working",
+                    "Volunteerwork",
+                    "StudentCluborganization",
+                    "WatchingTv",
+                    "Householdchildcare",
+                    "Playingvideogames",
+                    "Onlinesocialnetworking"))
+```
+
+**Intro: How do Highschoolers Spend Their Time**
+
+When recieving the data I wanted to explore the relationship between a persons ability as well as what they spend their time doing compared to their High Schoool GPA. We often get lectured in high school how to spend our free time to be sucessful in high school, Therefore I wanted to further eplore how Denison students spend their time in high school that could lead to a better GPA or that could hurt their GPA. This would give a potential student or the administration a insight into what to look for in future students and key elements on how to suceed in High School. 
+
+
+```{r}
+
+ggplot(Cirpdata, aes(Sex, HighSchoolGPA, color=Sex))+
+  geom_boxplot()+
+  ggtitle("High School GPA based on Sex")+ 
+  xlab("Sex")+
+  ylab("High School GPA")+
+  geom_jitter(width = 0.2, height=0.35, alpha = 0.5)+
+  ylim("","","","B-","B","B+","A-","A or A+")+
+  theme_bw()
+
+womenData <- Cirpdata %>% filter(Sex == "female")
+menData <- Cirpdata %>% filter(Sex == "male")
+```
+
+```{r include=FALSE}
+summary(Cirpdata$Sex)
+summary(womenData$Sex)
+summary(menData$Sex)
+
+
+
+
+# The summaries of women vs men GPA 
+summary(womenData$HighSchoolGPA)
+sd(womenData$HighSchoolGPA)
+IQR(womenData$HighSchoolGPA)
+summary(menData$HighSchoolGPA)
+sd(menData$HighSchoolGPA)
+IQR(menData$HighSchoolGPA)
+  
+```
+
+
+We can see that the GPA means are higher for Women (6.961) compared to Men (6.59), yet the median is the same (7.0). The minimum is lower for men (4.0) than it is for women (5.0). The standard deviation are about the same for men and for women(+- .1) which means that although the mean is different there is the same range of individuals. THE IRQ is different among Male (1) and Female (2) students, This means that there is more variation within the middle 50% of students high school GPA for Women comapred to Men  Within the dataset there are more females (283) than males (212) which could add more variation among the dataset for women.
+
+```{r}
+
+ggplot(Cirpdata, aes(x=HighSchoolGPA, y=StudyingHomework, color = Sex)) + 
+    stat_smooth(method = loess, level = 0.5)+
+    ggtitle("Time Spend Studying/Homework Compared to GPA")+ 
+    xlim("","","","B-","B","B+","A-","A or A+")+
+    ylim("","","1-2","3-5","6-10","11-15","16-20",">20")+
+    xlab("High School GPA")+
+    ylab("Hours Spent Studying/Homework")+
+    theme_bw()+
+    theme(legend.position = "right", 
+          axis.text.x = element_text(size = 8, angle = 45),
+          axis.title.x = element_text(size = 8),
+          axis.text.y = element_text(size = 8, angle = 45),
+          axis.title.y = element_text(size = 8))
+```
+
+When looking at this graph, we can observe that students who spend more time studying and doing howmework, have a higher GPA, on average, than students who do not spend as much time doing howework. In addition we are able to observe that Male students perform higher than Female students although spending less time on doing homework and studying. 
+
+```{r}
+  ggplot(Cirpdata, aes(x=HighSchoolGPA, y=Playingvideogames, color = Sex)) + 
+    stat_smooth(method = loess, level = 0.5)+
+    ggtitle("Time Spend Playing Video Games Compared to GPA")+ 
+    xlim("","","","B-","B","B+","A-","A or A+")+
+    ylim("None","<1","1-2","3-5","","","","")+
+    xlab("High School GPA")+
+    ylab("Hours Spent Playing videogames")+
+    theme_bw()+
+    theme(legend.position = "right", 
+          axis.text.x = element_text(size = 8, angle = 45),
+          axis.title.x = element_text(size = 8),
+          axis.text.y = element_text(size = 8, angle = 45),
+          axis.title.y = element_text(size = 8))
+```
+
+```{r include=FALSE}
+summary(womenData$Playingvideogames)
+sd(womenData$Playingvideogames)
+summary(menData$Playingvideogames)
+sd(menData$Playingvideogames)
+
+```
+
+When observing time spend playing video games, we see a that Male students (3.3) spend more time playing video games than female students (1.7). Although sterotypes are sometimes bad, and sometimes innaccurate, the idea that men play more video games compared to women is reenforced by this data. Despite this differnce, there is no observable difference on the effect video games has on High School GPA. This contradicts a lot of parents thoughts on video games being bad for GPA in High School. 
+
+
+

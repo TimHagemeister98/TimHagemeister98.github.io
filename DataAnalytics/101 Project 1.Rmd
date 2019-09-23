@@ -1,0 +1,392 @@
+---
+title: "DA 101 Project 1"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    toc: yes
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+#These are the packages that we will need 
+library(dplyr) 
+library(ggplot2)
+library(expss)
+library(formattable)
+library(magrittr)
+library(qwraps2)
+library(data.table)
+library(Hmisc)
+library(rlang)
+
+
+# Setting up the directory 
+
+GarlicMustardData = read.csv("GarlicMustardData.csv")
+
+```
+
+```{r, include=FALSE, warning=FALSE}
+
+summary(GarlicMustardData)
+
+
+```
+
+```{r} 
+# Here's how to select only certain columns:                                       ####
+myvars = c("Latitude","Longitude","Altitude")
+GarlicMustardGeo = GarlicMustardData[myvars]
+```
+
+```{r}
+# Here's another way to select columns:                                            ####
+GarlicMustard_subset = select(GarlicMustardData,1,3:5)
+
+```
+
+```{r}
+# Here's how to select only certain rows:                                        
+#If I want rows with Total Dens > 40 :
+GMfiltered = GarlicMustardData %>%
+  filter(TotalDens>40)
+```
+
+```{r}
+# North American Plants Filter,This is to analyze only the North American Data     ####
+NorthAmericanData = GarlicMustardData %>%
+  filter(Region == "NorthAm")
+
+```
+
+```{r}
+# European Plants Filter, This is to analyze only the European Data                ####
+EuropeanData = GarlicMustardData %>% 
+  filter(Region == "Europe")
+
+```
+
+```{r, warning=FALSE}
+# Dumb way to make a histogram: Never ended up using this data                     ####
+hist(NorthAmericanData$AvgAdultHeight,breaks=20)
+```
+
+```{r, warning=FALSE}
+# North American Data Histogram                                                    #####
+ggplot(NorthAmericanData, aes(x=AvgAdultHeight))+
+  geom_histogram(bins = 10, fill = "blue", color = "black")+
+  xlab("Average Adult Height")+
+  ylab("Number of plants")+
+  ggtitle("Average Adult Height of North American Garlic Mustard")
+```
+
+**What do your histograms tell you about Garlic Mustard and the EICA hypothesis? How confident are you in your response?** 
+
+The histograms tell us that the average height of European Garlic Mustard Plants is greater than the average height of North American Garlic Mustard Plants. This goes against the EICA hypothesis. I am pretty confident in my response as the graphs clearly have different distributions, although there is a right skew to the average height of North American Plants and a left skew to the average height of European Plants, the peak of each histogram is clearly different. This is again supported when we look at the means of the data in the next step. 
+
+**So, do the histograms and means support EICA's predictions about plant height?  Why or why not?** 
+
+The histogram means prove to us what we previously thought, which is that the data disproves EICA’s prediction about plant height. This is because North American Garlic Mustard Plants (67.12) actually have a lower height average compared to European Garlic Mustard Plants (77.53). This data demonstrates to us that Garlic Mustard Plants in North America are not bigger and healthier compared to Europe when looking at Average Adult Height. 
+
+```{r, warning=FALSE, include=FALSE}
+
+# North Americian Data analysis                                                    ####
+summary(NorthAmericanData$AvgAdultHeight)
+mean(NorthAmericanData$AvgAdultHeight, na.rm = TRUE) 
+
+```
+
+```{r, warning=FALSE}
+# European Data Histogram                                                          #####
+ggplot(EuropeanData, aes(x=AvgAdultHeight))+
+  geom_histogram(bins = 10, fill = "red", color = "black")+
+  xlab("Average Adult Height")+
+  ylab("Number of plants")+
+  ggtitle("Average Adult Height of European Garlic Mustard")
+```
+
+```{r, warning=FALSE, include=FALSE}
+# European Data analysis                                                           ####
+summary(EuropeanData$AvgAdultHeight)
+mean(EuropeanData$AvgAdultHeight, na.rm = TRUE) 
+```
+
+**Are there other variables of the plant besides height that might measure plant size or plant health? Why or why not? If you think there are measures that represent these things, please list them below. If not, what would you measure instead?**
+
+Total density was another important factor, in my opinion to look at, this is because healthier plants should grow denser compared to not so healthy plants. I reason this due to healthier plants being should be able to grow denser, therefore take up more space and take up more of the given nutrients in their environment. When we look at the data provided, we contradict our previous findings. This is because European plants have a mean total Density of 38.87, compared to the mean total density of North American plants which is significantly higher at 102.99. This could mean that either my interpretation of density and plant health is misinformed or that we can not just look at Average Height of Garlic Mustard plants to determine the healthiness of plants. (See Graph Below) 
+
+```{r, warning=FALSE}
+# Comparison between Densitoy of plants by region                                  #####
+ggplot(GarlicMustardData, aes(x=TotalDens, fill= Region))+
+  geom_histogram(position= "dodge", bins = 10)+
+  xlab("Total Density")+
+  ylab("Number of plants")+
+  ggtitle("Density of Garlic Mustard plants by region")
+```
+
+```{r, warning=FALSE, include=FALSE}
+# Analysis between density of plants by region                                     ####
+mean(NorthAmericanData$TotalDens, na.rm = TRUE) 
+mean(EuropeanData$TotalDens, na.rm = TRUE) 
+```
+
+```{r, warning=FALSE}
+
+# Dotplot with Denisty of plants by region and Rainfall                            ####
+ggplot(GarlicMustardData, aes(x=AvgAdultHeight, y=bio12, color=Region))+
+  geom_point()+
+  xlab("Average Adult Height")+
+  ylab(" Rainfall ")+
+  ggtitle("Density of Garlic Mustard plants by region")+
+  geom_smooth(method = "lm")
+
+```
+
+**Does there look like there is a relationship?  If so, does it make sense to you?  Why or why not?**
+
+Yes, there is a relationship, although there is no large relationship there is still one. When looking at the mean values of rainfall and Average Adult Height by region we see that North American Plants (1050) have a greater mean value compared to European Plants (763). Yet when running statistical analysis on the data we observe that North American Plants have a Pearson R coefficient of -0.21, where as European Plants have a Pearson R coefficient of 0.17. This means that European plants grow more with more rainfall, yet North American Plants will grow less with more rainfall. 
+
+```{r, warning=FALSE, include=FALSE}
+# Analysis of density of plants by region and Rainfall                             ####
+mean(NorthAmericanData$bio12, na.rm = TRUE) 
+mean(EuropeanData$bio12, na.rm = TRUE) 
+```
+
+```{r, warning=FALSE}
+CTN <- cor.test(NorthAmericanData$AvgAdultHeight, NorthAmericanData$bio12, method = "pearson")
+CTE <- cor.test(EuropeanData$AvgAdultHeight, EuropeanData$bio12, method = "pearson")
+
+```
+
+```{r, warning=FALSE}
+# I ended up combining the data points on ggplot, grid arrage, this allowed me to add multiple box plots with different variables into one graph
+  
+gridExtra::grid.arrange(
+  ggplot(GarlicMustardData, aes(x= bio1, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Anual Mean Temperature")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio2, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Mean Diurnal Range")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+    
+  ggplot(GarlicMustardData, aes(x= bio3, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Isothermality")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio4, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Temperature Seasonality")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio5, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Max Temperature of Warmest month")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio6, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Min Temperature of Coldest month")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio7, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Temperature Annual Range")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio8, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Mean Temperature of Wettest quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio9, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Mean Temperature of Driest quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio10, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Mean Temperature of Warmest quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio11, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Mean Temperature of Coldest quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio12, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Annual Precipitation")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio13, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitation of Wettest Month")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio14, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitation of Driest Month")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio15, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitation Seasonality")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio16, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitatoin of Wettest Quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio17, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitatoin of Driest Quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none", 
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio18, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitation of Warmest Quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = "none",
+          axis.title = element_text(size = 5)),
+  
+  ggplot(GarlicMustardData, aes(x= bio19, y=AvgAdultHeight, fill = Region))+
+    geom_boxplot(position = position_dodge())+
+    xlab("Precipitation of Coldest Quarter")+
+    ylab("Average Adult Height")+
+    theme_light()+
+    theme(legend.position = c(1.5,.4),
+          legend.key.size = unit(.5, "cm"),
+          axis.title = element_text(size = 5))+
+    scale_fill_discrete(name = "Region", labels = c("Europe","North America")),
+  
+  nrow=5
+  )
+
+```
+
+
+
+**Please include a few sentences describing what your dependent and independent variables are, and if you think the plot suggests that there are differences or not. Why?**
+
+
+I decided to combine all of the bio variables into one graph for easier comparison, they are seperated by region and are comparing Average Adult Height with the different Bio markers. When looking further at the data we are able to see that there are slight differnces among all of the variables yet Mean Temperature of Wettest Quarter seems to be the most consistent by region. When looking close at the data, in the first data table down below, we see some larger differences. The first large difference we can see in the Annual Temperature Range, European Plants have a mean value of 26.9 whereas North American Plants have a mean value of 36.3. In addition we see a large differnece in Annual Precipitation which we have already discussed previously. Furthermore we see a large differnce in both the Precipitation of Driest Quarter 
+(E= 136, NA= 210) and Precipitatoin of Coldest Quarter (E= 159, NA=210). This means that European Plants have to suffer colder drier climents compared to North American plants which could be a reason for the difference in Average Adult Height. The next data table showes how these bio measures effect average adult height. When looking at the statistical differnces between Average Height of plants categorized in 0-40, 40-80, 80-120, and 120-160, we see that the minimum temperature of the coldest mothns, precipitation of coldest quarter as well as mean temperature of Wettest quarter have the greatest effect on Average Adult Height in Garlic Mustard Plants. Within each region we see that in North Ameica, Mean Diurnal Range, Temperature annual range, and Mean temperature of driest quarter have the largest effect on Average Adult Height. Comparativly we see that in European Plants, mean temperature of coldest quarter and Annual Precipitation have the largest effect on Average Adult Height. 
+
+
+```{r, warning=FALSE}
+# data table try 2 and it worked!                                                  #####
+
+
+
+expss_output_rnotebook()
+
+W = GarlicMustardData
+
+W = W %>% compute({AAHmix = recode(AvgAdultHeight, lo %thru% 40 ~ 1 , 40 %thru% 80 ~ 2, 80 %thru% 120 ~ 3 , 120 %thru% 160 ~ 4)})
+W = apply_labels(W, AAHmix = c("0-40" = 1, "40-80" = 2, "80-120" = 3, "120-160" = 4))
+W = apply_labels(W, 
+                 bio1= "Anual Mean Temperature",
+                 bio2= "Mean Diurnal Range",
+                 bio3= "Isothermality (Bio2/Bio7)X100",
+                 bio4= "Temperature Seasonality",
+                 bio5= "Max Temperature of Warmest month",
+                 bio6= "Min Temperature of Coldest month",
+                 bio7= "Temperature Annual Range (Bio5-Bio6)",
+                 bio8= "Mean Temperature of Wettest quarter",
+                 bio9= "Mean Temperature of Driest quarter",
+                 bio10= "Mean Temperature of Warmest quarter",
+                 bio11= "Mean Temperature of Coldest quarter",
+                 bio12= "Annual Precipitation",
+                 bio13= "Precipitation of Wettest Month",
+                 bio14= "Precipitation of Driest Month",
+                 bio15= "Precipitation Seasonality (coefficient of Variation",
+                 bio16= "Precipitatoin of Wettest Quarter",
+                 bio17= "Precipitatoin of Driest Quarter",
+                 bio18= "Precipitation of Warmest Quarter",
+                 bio19= "Precipitation of Coldest Quarter",
+                 Region = "Region")
+
+
+
+
+
+W %>% 
+  tab_cells(bio1, bio2, bio3, bio4, bio5, bio6, bio7, bio8, bio9, bio10, bio11, bio12, bio13, bio14, bio15, bio16, bio17, bio18, bio19) %>%
+  tab_cols(total(label = "#total "), Region) %>% 
+  tab_stat_fun(Mean = w_mean, "std. dev." = w_sd, "valid N" = w_n, method = list) %>% 
+  tab_pivot() 
+
+
+W %>% 
+  tab_cells(bio1, bio2, bio3, bio4, bio5, bio6, bio7, bio8, bio9, bio10, bio11, bio12, bio13, bio14, bio15, bio16, bio17, bio18, bio19) %>%
+  tab_cols(total(), Region %nest% AAHmix) %>% 
+  tab_stat_mean_sd_n() %>%
+  tab_last_sig_means(subtable_marks = "both") %>% 
+  tab_pivot() %>% 
+  set_caption("Table with summary statistics and significance marks")
+
+```
+

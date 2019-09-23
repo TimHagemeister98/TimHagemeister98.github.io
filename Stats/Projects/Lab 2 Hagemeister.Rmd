@@ -1,0 +1,406 @@
+---
+title: "Project 2"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+runtime: shiny
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: paper
+
+  
+---
+
+```{r setup, include=FALSE}
+
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+library(GGally)                                                           #
+library(Hmisc)                                                            #
+library(corrplot)                                                         #
+library(PerformanceAnalytics)                                             #
+library(ggpubr)
+library(gridExtra)#
+library(grid)                                                                          
+# 
+theme_set(                                #this sets the theme for all    #
+theme_tufte() +                         #plots that we make               #
+theme(text=element_text(family="sans")) +                                 #
+theme(axis.text.x = element_text(angle=-90))                              #
+)                                                                         #
+                                                                          #
+                                                                          #
+HouseSales <- read_csv("House-Sales.csv")                                 #
+LabelHS <- read_csv("LabelHouse.csv")                                     #
+                                                                          #                                                                                        #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+```{r, include = FALSE}
+## Renaming the labels so that they fit the correct graph 
+HouseSalesLabel1<- setnames(HouseSales, old=c("id", 
+                          "date",
+                          "price",
+                          "bedrooms",
+                          "bathrooms", 
+                          "sqft_living", 
+                          "sqft_lot",
+                          "improvements",
+                          "floors", 
+                          "waterfront", 
+                          "view", 
+                          "hoa",
+                          "condition", 
+                          "grade", 
+                          "sqft_above", 
+                          "sqft_basement", 
+                          "yr_built", 
+                          "yr_renovated", 
+                          "zipcode",
+                          "lat", 
+                          "long", 
+                          "sqft_living15", 
+                          "sqft_lot15"),
+                    new=c("1",
+                          "2",
+                          "3",
+                          "4",
+                          "5",
+                          "6",
+                          "7",
+                          "8",
+                          "9",
+                          "10",
+                          "11",
+                          "12",
+                          "13",
+                          "14",
+                          "15",
+                          "16",
+                          "17",
+                          "18",
+                          "19",
+                          "20",
+                          "21",
+                          "22",
+                          "23"))
+
+```
+
+## Goal 
+
+
+**The ultimate goal** is to find the best linear model to predict Sale Price
+
+
+## Exploration  
+
+The first step was to look at how the different variables within the dataset corelated with each other. Through the exploration of the correlation matrix down below shows the corelation of all numeric values in the dataset. Since we want to compare differnt variables with Sale Price, we will be looking at the variable X3 and following the row to see if any variables have a strong positive or negative correlation with Sale Price. 
+
+
+```{r}
+
+g1 <- ggcorr(HouseSalesLabel1, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 2,
+       label_size = 2,
+       angle = -45)+
+       theme(plot.margin = unit(c(1,1,1,6), "cm"))
+  
+g2 <- ggtexttable(LabelHS, 
+              theme = ttheme(base_size = 8, 
+                             "classic",
+                             colnames.style = colnames_style(size = base_size),
+                             rownames.style = rownames_style(size = base_size),
+                             padding = unit(c(1, 2), "mm")),
+              rows = NULL)
+
+g1 + annotation_custom(ggplotGrob(g2),
+                       xmin = -19.5, 
+                       ymin = 1, 
+                       xmax = 8)
+
+
+  
+```
+
+*** 
+
+## Identifying Imortant Variables 
+
+After running the Correlation Matrix we can observe that there are 4 variables that corelate strongly with Sale Price: Number of bathrooms in the house (5), Square footage of the home (6), Square footage of the house apart from the basement (15), living room area in 2015 (22). Before continuing the investigation I have decided to remove the number of bathrooms in a house as I do not feel like the number of bathrooms in a house can adequatly describe the value of the house. In addition the distribution of the variable, which can be seen below, is not spread out evenly and the residuals as well as outliers would have too large of an effect to accuratly predict sale price . I will continue to look at the variables and their distributions to conclude going further with the analysis. To do this I will be using a Correlation Chart to display the different informations. 
+
+
+
+```{r}
+# select the variables that we want to use 
+HouseSales2 <- HouseSalesLabel1 [, c(3, 5, 6, 15, 22)]
+# create a corelation shart with those variables 
+chart.Correlation(HouseSales2, histogram = TRUE)
+
+```
+
+***
+
+## Viewing the Models 
+
+
+We will explore these variables in more detail as we are certain about their trends and their impact on sale prices. By doing so we need to first look at the residuals to see if anything stand out. In addition we will be looking at the equation for the linear regression, this will help us determine the impact that each variable has on Sale Price. By doing this we will be able to determine the best factor for determining sale price of the homes. 
+
+```{r, include = FALSE}
+
+HouseSales <- setnames(HouseSales, old=c("1",
+                          "2",
+                          "3",
+                          "4",
+                          "5",
+                          "6",
+                          "7",
+                          "8",
+                          "9",
+                          "10",
+                          "11",
+                          "12",
+                          "13",
+                          "14",
+                          "15",
+                          "16",
+                          "17",
+                          "18",
+                          "19",
+                          "20",
+                          "21",
+                          "22",
+                          "23"),
+                    new=c("Anotationforahouse",
+                          "Datehousewassold",
+                          "Saleprice",
+                          "NumberofBedroomsHouse",
+                          "NumberofbathroomsHouse",
+                          "squarefootageofthehome",
+                          "squarefootageofthelot",
+                          "Haveimprovementsbeenmade",
+                          "floorsin house",
+                          "whichhasaviewtoawaterfront",
+                          "Hasbeenviewed",
+                          "partofHomeOwnersAssociation",
+                          "HowgoodtheconditionisOverall",
+                          "gradegiventothehousingunit",
+                          "footageofhouseapartfrombasement",
+                          "squarefootageofthebasement",
+                          "Year",
+                          "Yearwhenhousewasrenovated",
+                          "zipcode",
+                          "Latitudecoordinate",
+                          "Longitudecoordinate",
+                          "Livingroomareain2015",
+                          "lotSizeareain2015"))
+
+```
+
+```{r}
+# getting the data right  11111
+HouseSalesD <- HouseSales %>% select(Saleprice, squarefootageofthehome, Livingroomareain2015, footageofhouseapartfrombasement)
+
+# fit the model 
+fit <- lm(Saleprice ~ squarefootageofthehome, data = HouseSalesD)
+
+# find r from R^2 
+R21 <- signif(summary(lm(Saleprice ~ squarefootageofthehome, data = HouseSales))$adj.r.squared)
+R1 <- round(sqrt(R21), digits = 3) 
+
+
+#obtain predicted and residual values 
+HouseSalesD$predicted <- predict(fit)
+HouseSalesD$residuals <- residuals(fit)
+
+#create the plot 
+R1 <-ggplot(HouseSalesD, aes(x=squarefootageofthehome, y = Saleprice))+
+  geom_segment(aes(xend= squarefootageofthehome, yend = predicted), alpha = .1)+
+  scale_y_continuous(labels = scales::comma)+
+  geom_point(aes(color = residuals), alpha = 1.0)+
+  scale_color_gradient2(low = "blue", mid = "white", high = "red")+
+  guides(color = FALSE)+
+  ylab("Sale Price")+
+  xlab("Square Footage")+
+  geom_point(aes(y=predicted), shape = 1, alpha = .1)+
+  theme_bw(base_size = 8)+
+  theme(plot.title = element_text(size = 8))+
+  geom_smooth(method = lm, color = "gray")+ 
+  ggtitle(paste(" R2 = ",signif(summary(lm(Saleprice ~ squarefootageofthehome, data = HouseSales))$r.squared, 5),
+                "\n R = ", R1,
+                "\n Intercept =",signif(lm(Saleprice ~ squarefootageofthehome, data = HouseSales)$coef[[1]],5 ),
+                "\n Slope =",signif(lm(Saleprice ~ squarefootageofthehome, data = HouseSales)$coef[[2]], 5)))+ 
+  annotate("text", x = 1200, y = 6000000, label = "italic(hat(y)) ", parse = TRUE, size = 3) +
+  annotate("text", x = 6500, y = 6000000, label = "= -43868 + 280381x", size = 3) 
+  
+```
+
+
+```{r}
+# getting the data right  22222
+HouseSalesD <- HouseSales %>% select(Saleprice, squarefootageofthehome, Livingroomareain2015, footageofhouseapartfrombasement)
+
+# fit the model 
+fit <- lm(Saleprice ~ footageofhouseapartfrombasement, data = HouseSalesD)
+
+# find r from R^2 
+R22 <- signif(summary(lm(Saleprice ~ footageofhouseapartfrombasement, data = HouseSales))$adj.r.squared)
+R2 <- round(sqrt(R22), digits = 3) 
+
+
+#obtain predicted and residual values 
+HouseSalesD$predicted <- predict(fit)
+HouseSalesD$residuals <- residuals(fit)
+
+#create the plot 
+R2 <- ggplot(HouseSalesD, aes(x=footageofhouseapartfrombasement, y = Saleprice))+
+  geom_segment(aes(xend= footageofhouseapartfrombasement, yend = predicted), alpha = .1)+
+  geom_point(aes(color = residuals), alpha = 1.0)+
+  scale_y_continuous(labels = scales::comma)+
+  scale_color_gradient2(low = "blue", mid = "white", high = "red")+
+  guides(color = FALSE)+
+  ylab("Sale Price")+
+  xlab("Square Footage aprt basement")+
+  geom_point(aes(y=predicted), shape = 1, alpha = 1.0)+
+  theme_bw(base_size = 8)+
+  theme(plot.title = element_text(size = 8))+
+  geom_smooth(method = lm, color = "gray")+ 
+  ggtitle(paste(" R2 = ",signif(summary(lm(Saleprice ~ footageofhouseapartfrombasement, data = HouseSales))$r.squared, 5),
+                "\n R = ", R2,
+                "\n Intercept =",signif(lm(Saleprice ~ footageofhouseapartfrombasement, data = HouseSales)$coef[[1]],5 ),
+                "\n Slope =",signif(lm(Saleprice ~ footageofhouseapartfrombasement, data = HouseSales)$coef[[2]], 5)))+ 
+  annotate("text", x = 600, y = 6000000, label = "italic(hat(y)) ", parse = TRUE, size = 3) +
+  annotate("text", x = 3900, y = 6000000, label = "= 59741 + 268.64x", size = 3) 
+
+```
+
+```{r}
+# getting the data right  33333
+HouseSalesD <- HouseSales %>% select(Saleprice, squarefootageofthehome, Livingroomareain2015, footageofhouseapartfrombasement)
+
+# fit the model 
+fit <- lm(Saleprice ~ Livingroomareain2015, data = HouseSalesD)
+
+# find r from R^2 
+R33 <- signif(summary(lm(Saleprice ~ Livingroomareain2015, data = HouseSales))$adj.r.squared)
+R3 <- round(sqrt(R33), digits = 3) 
+
+
+#obtain predicted and residual values 
+HouseSalesD$predicted <- predict(fit)
+HouseSalesD$residuals <- residuals(fit)
+
+#create the plot 
+R3 <- ggplot(HouseSalesD, aes(x=Livingroomareain2015, y = Saleprice))+
+  geom_segment(aes(xend= Livingroomareain2015, yend = predicted), alpha = .1)+
+  geom_point(aes(color = residuals), alpha = 1.0)+
+  scale_color_gradient2(low = "blue", mid = "white", high = "red")+
+  scale_y_continuous(labels = scales::comma)+
+  guides(color = FALSE)+
+  ylab("Sale Price")+
+  xlab("living room area")+
+  geom_point(aes(y=predicted), shape = 1, alpha = 1.0)+
+  theme_bw(base_size = 8)+
+  theme(plot.title = element_text(size = 8))+
+  geom_smooth(method = lm, color = "gray")+ 
+  ggtitle(paste(" R2 = ",signif(summary(lm(Saleprice ~ Livingroomareain2015, data = HouseSales))$r.squared, 5),
+                "\n R = ", R3,
+                "\n Intercept =",signif(lm(Saleprice ~ Livingroomareain2015, data = HouseSales)$coef[[1]],5 ),
+                "\n Slope =",signif(lm(Saleprice ~ Livingroomareain2015, data = HouseSales)$coef[[2]], 5)))+ 
+  annotate("text", x = 1200, y = 6000000, label = "italic(hat(y)) ", parse = TRUE, size = 3) +
+  annotate("text", x = 3500, y = 6000000, label = "= -83107 + 313.75x", size = 3) 
+
+
+```
+
+```{r}
+ggarrange(R1, R2, R3, 
+          ncol = 3, 
+          nrow = 1)
+
+
+
+
+```
+
+***
+
+
+## Final Interpretation and Model 
+
+
+With further analysis of the above graphs we can observe that the first graph (left) has the strgonest corelation. The values above each graph give us further insight into the distribution of the data points. **$R$** tells us the corealtion between the predicted values and the observed values. **$R^2$** is a statistical measure of how close the data are to the fitted regression line. It is the percent of the response variable variation that is explined bya linear model. In general, the higher the $R^2$ value is, the better the model fits to your date. **$Slope$** tells us how the change of y for every unit change of x, this will help us show the relationship between x and y to help predict Sale Price for houses depending on the given variable.
+
+Since the first graph (left) has both the strongest $R$ value as well as $R^2$ Value I have determined that this model is the best fit model to determine Sale Price with the following equation: $$\hat{y} = -43868 + 280.81x $$
+
+Although a y intercept of -43,868 dollars seems odd, it makes sense when you inlcude the price of the lot for a home, this could mean that when buying a home, one needs to purchase the lot first. This menas that one can not just buy a house with 10 dollars but needs a minimum amount to at least be able to afford the lot before adding any square footage of the home. 
+
+This model is of course not perfect, as we can see through the residuals, there are values on the far right that have strong leverage over the data. Although these values exist, I suspect that the strong values both below as well as abover will negate each other when taking the linear model into consideration. Furtheremore, the residuals seem to follow no clear trend, although it is not homoskedastic, therefore predicting variables using linear models would not be the best. This is because at lower square footage, the model would be more accurate compared to predicting sale prices of larger homes. Furthermore, the second variable regarding square footage apart from basement (middle), has even more variables with high leverage on the upper end of the dataset, affecting the linear regression. Although the third model (Right) does not have any outliers, it also does not have a strong corelation and therefore it was not a good representation of the dataset. 
+
+Although these limitations exist, I still believe given the dataset and our knowledge of the dataset, using square footage of a home seems to be the best predictor of sale price. 
+
+  
+
+## Sale Price Calculator 
+
+```{r}
+
+numericInput(inputId = "Price", label = "Enter square footage of the home", value = 10000, min = 0, max= 10000000 )
+
+Input <- renderPrint({(input$Price)})
+
+PredictedHouseSalePrice <- renderText({((as.numeric(input$Price)*280.81)-43868)})
+
+
+```
+
+**Estimated Price of Home in Dollars:**
+
+```{r}
+PredictedHouseSalePrice
+```
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+

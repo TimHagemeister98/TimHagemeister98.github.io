@@ -1,0 +1,395 @@
+---
+title: "Project 2"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    toc: yes
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+#These are the packages that we will need 
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(pastecs)
+library(psych)
+library(stargazer)
+library(formattable)
+library(expss)
+library(GGally)
+library(gridExtra)
+library(grid)
+library(ggpubr)
+library(knitr)
+library(kableExtra)
+
+
+# Setting up the directory 
+
+titanic_df <- read_excel("titanic_data.xlsx")
+
+```
+## Part I: Checking Your Facts {.tabset}
+
+***
+
+**1) What is the total number of observations?**
+
+  a) The total number of observations are 891 observations with 12 variables.
+    
+
+**2) Does the length of the dataset correspond to actual number of passengers who were on Titanic according to historical records (You need to do some Googling). If there is any difference, where do you think the difference may come from?**
+
+  a) The length of the data set does not actually corespond with the total number of people on board when the Titanic sank. The total number of passangers is estimated areoun *2,222*. The difference comes from the lack of data I believe, The datacollection was not as detailed in the past as it is today, therefore we might not have the data of a lot of passangers. I dont think that this is the most detailed datasets becasue of this but it is enough for some general analysis about the passangers of the Titanic. 
+
+**3) The movie Titanic (1996) was a love story between Jack Dawson and Rose DeWitt Bukater? Are they in the dataset? Why/Why not? (You need to do some Googling)**
+
+  a) No, they are not in the dataset, this is becuase the love story is not actually true, or not with the characters that are explained in the love story. Therefore they are actually not in the dataset but are just made up for holywood exposure and the ability to make a movie about the sinking of the titanic. 
+
+**4) Are there any missing values? How many missing values are there for different columns?**
+
+  a) There are a decent amount of missing values, one of the larger gaps in data is the data for the age of the passanger. There is a lot of data missing which could affect the data significantly. In addition more than half of the cabin data is missing, although the data does not seem to be that important, the missing data is still a concern. Other than these two concerns, there is the occasional missing data point but there is no larger gap in data that could have a drastic effect on the analysis. 
+
+**5) There is more information about the dataset on Kaggle: Does it say when the dataset was created?**
+
+  a) The data set was created 2017-07-30, which was also the last update date for this data set. 
+  
+  
+**6) Do you trust the source of the data? Why? Why not?**
+
+  a) Yes I do trust the data, this is because it was downloaded from Kaggle, which is a reputable website with a lot of different data sets. Although it is, in my opinion, not perfect, it still seems like a good and reputable dataset that will allow us to say a lot of detailed infomration and conclusions about the sinking of the Titanic. 
+
+
+*** 
+
+
+## Part II: Descriptive Statistics
+
+```{r}
+
+
+WA <- titanic_df
+WA %>% 
+    tab_cells(PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare) %>%
+    tab_cols(total(label = "#Total")) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>% 
+    htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 80px", ncol(.) - 1)))
+
+
+```
+
+***
+
+## Part III: Working with Sub-Datasets
+
+If you have seen the movie Titanic, you might remember that the protagonists who were in love with each other were from different passenger classes. Let’s take a look at the demographic characteristics of people from different passenger classes.
+There are three different passenger classes in the dataset. Using dplyr, split the dataset into three parts and store these datasets in memory separately:
+
+```{r}
+titanic_df_passenger_class_1 <- titanic_df %>% filter(Pclass == "1") 
+titanic_df_passenger_class_2 <- titanic_df %>% filter(Pclass == "2")
+titanic_df_passenger_class_3 <- titanic_df %>% filter(Pclass == "3") 
+
+```
+
+***
+
+Indicate how many observations there are in each dataset. Which is the biggest passenger class?
+
+- **number of First class pasangers:** *216*
+- **number of second class passangers:** *184*
+- **number of third class passangers:** *491*
+
+
+It is expected that the demographic characteristics of passengers are different in each passenger class. Normally, younger people are less wealthy, and they would be expected to pay less for the ticket. Similarly, larger families may be inclined to pay less for the ticket to save some money. Take a look at the statistical properties of the three datasets that you created, now create a separate table for each class that statistically summarizes each passenger class.  
+
+
+```{r}
+DAS1 <- titanic_df_passenger_class_2 <- titanic_df %>% filter(Pclass == "2")
+DAS2 <- titanic_df_passenger_class_2 <- titanic_df %>% filter(Pclass == "2")
+DAS3 <- titanic_df_passenger_class_3 <- titanic_df %>% filter(Pclass == "3") 
+
+WB = titanic_df
+
+WB %>% 
+    tab_cells(PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare) %>%
+    tab_cols(Pclass) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>%
+htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 70px", ncol(.) - 1)))
+
+
+```
+
+***
+
+
+ **1) What is the relationship between passenger classes and age? Do you see any relationship?**
+ 
+ a) as predicted above, the first class pasangers have a mean age of *38.2*, which is higher than second class passangers with a mean of *29.9*, which is once again higher than the third class passangers with a mean age of *25.1*. The fact that some of the data is missing needs to be taken into consideration, yet this is a clear distinction between first second and third class when compared to the mean ages of the passangers.  
+ 
+ **2) What about the relationship between passenger class and number of siblings and spouses (SibSp variable)? Do you see any relationship there?**
+ 
+ a) There seems to be no difference between first and second class, this could be that families who are traveling with small families dont mind the difference between first and second class. There is a difference between third class and the rest. Although the mean is only 0.2 higher the max value is an incredible 0.5 higher, this clearly shows that families with a larger family, anything abover 0.3, will with great certaintly travel in third class. 
+ 
+ **4) And finally, what is the relationship between passenger class and ticket price?**
+ 
+  a) The relationship between class and ticket price is similar to the one with age. First class has by far the largest tick price with a mean value of *84.2* and an astonishing 512.3 max ticket price. Second class has a lowe mean value of ticket price with a mean price value of *20.7*. This is a very significant difference, being a fourth of the average price of first class. Looking at third price there is again a differnce with a lower mean value of *13.7*. This data is somewhat problematic as the minimum value is 0.0, which does not make much sense yet since the median is still 8.1 and is not affected as much by outliers, i still think that the data is reliable. 
+ 
+ **5) Did your expectations come true?**
+ 
+  a) Yes, since the first, second and third class tickets work similarly today, I assumed that it is the same case back in the day on a ship. This is that prices for first class are the most expensive, second is cheaper and third is by far the cheapest. Once again another corelation is that families with more children will mainly fly economy as business or first class are occupied by single business men and women or couples rather than large families. This also relates to age, since business men and women normally occupy the expensive tickets on flights, their average age will also be significantly higher compared to the younger age of second and third class. 
+  
+***
+
+**Dataset containing information on the count of passangers in each class as well as the number of passangers that survived and those who did not.**
+ 
+```{r}
+
+titanic_df %>% 
+  calc_cro(Pclass, list(total(), Sex %nest% Survived)) %>% 
+  set_caption("0 = dead, 1 = survived") %>% 
+  htmlTable(., css.cell = c("width: 100px", 
+      rep("width: 60px", ncol(.) - 1))
+    )
+
+
+```
+
+**Observations:** This data table shows us the number of individuals on the Titanic that survived and died depending on their Sex. It is clear at first to see that women survived more than male passangers. When looking at different classes we can see that there are around the same amount of Female surviors in each class, however there were hardly any first and second class females that died. There was a great amount of female passangers that died which is a significant increase from first and second class females. When looking at male's we see that the greatest amount of men that died in the sinking of the titanic are third class male passangers. Although there are more third class passangers than any other class, 300 deaths is significantly more deaths than any other category. When looking at the amount of males that survived, we see that second class male passangers had the least amount of survivors. This seems odd as there are more male survivors in third class than in second class but since there are less second class passangers than third class passangers, the raw number does not display the whole information. 
+
+
+**Dataset containing information on the relationship between Male and Female passangers survival rate.**
+
+```{r}
+
+titanic_df %>% calc_cro_cpct(Survived, list(total() %nest% Sex, Pclass %nest% Sex)) %>% 
+            set_caption("0 = dead, 1 = survived") %>% 
+            htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 60px", ncol(.) - 1))
+    )
+
+
+```
+
+**Observations:** This data allows us to see the relationship betwen male and female survivors in each class of the Titanic. Although we already did most of the analysis we are able to tell a few more key elements within this chart. Females in third class had a 50/50 chance of surviving. Comparatively, females in second and first class had almost a 90% chance of surviving. As stated above, there were a lot more third class passangers than any other class but this ration is still a lot lower than first or second class. When looking at males, second and third class males were below the average sruvival rate wheras first class males were above the survival rate. Based on this is, the most favorate seat for males would be in first class as well as for females, yet second class females had a greater chance of survival than second class males. Survival rates for overall were almost flipped between males and females, females had a 75% chance of survival wheras men had a 80% chance of death. 
+
+*** 
+
+## Part IV: Working with Bivariate Statistics
+
+**In this part, we will try to uncover some possible relationships between the variables in the dataset. Provide a “correlation matrix” that looks at the relationship between all the numeric variables you discovered in Step 3.**
+
+```{r, include=FALSE}
+gt <- ggcorr(titanic_df, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 2,
+       label_size = 2,
+       angle = -45)+
+       theme(plot.margin = unit(c(0,0,0,0), "cm"))
+
+g1 <- ggcorr(titanic_df_passenger_class_1, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 2,
+       label_size = 2,
+       angle = -45)+
+       theme(plot.margin = unit(c(0,0,0,0), "cm"))
+g2 <- ggcorr(titanic_df_passenger_class_2, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 2,
+       label_size = 2,
+       angle = -45)+
+       theme(plot.margin = unit(c(0,0,0,0), "cm"))
+g3 <- ggcorr(titanic_df_passenger_class_3, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 2,
+       label_size = 2,
+       angle = -45)+
+       theme(plot.margin = unit(c(0,0,0,0), "cm"))
+
+```
+
+```{r}
+Corelation1 <- ggarrange(gt, g1, g2, g3, 
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, 
+          nrow = 2)
+
+annotate_figure(Corelation1,
+                top  = text_grob("A= Total corelatoin B= First class C= Second class D= Third class", color = "black", size = 10)
+                )
+```
+
+**Observations:** When doing the initial observation between corelation in Plot A, we see that the relationship between pare prices and Class are corelated with a value of *-0.5*, although this is not a stong corelation we still see that there is a corelation between these two variables. When we look at second class we dont see any significant corelations. The strongest corelation between variables is between fare prices and number of parents/children of passangers on board, yet the corelation is quite week and hard to draw conclusions. Comparativley, third class has a stonger corelation between number of siblings and spouces and fare price, this showed that for second class passangers, the more siblings or spouces for passangers on board meant that their price for passage was increased. This could be due to more occupants per room or just a rule that they had in place. Once again if we look at third class passangers, the number of siblings is strongly corelated with fare price with a value of *0.8*. This means that there is a strong corelation that shows that an increase in number of siblings or spouces on board the Titanic meant a increase of Fare Price. Although we have a lot of variables in the data set, we do not see as many corelations that I would have predicted, this makes it hard to analyse data as corelation can be helpfull in making observations about the dataset. Despite this we are still able to draw some conclusions from the corelation matrix. 
+
+## Part V: Conditional Probabilities
+
+```{r, include=FALSE}
+
+Ptable <- titanic_df %>% 
+  group_by(Pclass %nest% Survived) %>% 
+  select(Sex) %>% 
+  table %>% 
+  prop.table(1)
+
+```
+
+
+```{r echo=FALSE, results= 'asis'}
+
+
+kable(Ptable, caption = "Conditional Probabilities" ) %>% 
+  kable_styling("striped") %>%
+  pack_rows("First Class", 1,2) %>% 
+  pack_rows("Second Class", 3,4) %>% 
+  pack_rows("Third Class", 5,6)
+
+
+```
+
+- **Who survived the most:** Second Class Females passangers had the greatest chance of survival  
+
+- **Who survived the least:** Second Class Male passangers had the smallest chance of survival 
+
+- **What is the probability that a child who is in third class is 10 years old or younger survived:** 0.432 
+
+```{r, include= FALSE}
+
+S10 <- titanic_df %>%
+  filter(Age <= 10) %>%
+  filter(Pclass == 3) %>%
+  summarize(prob = mean(Survived == 1 , na.rm = T))
+
+```
+
+
+- **How much did people pay to be on the ship according to their class:** 
+
+
+```{r}
+fare <- titanic_df %>% 
+    group_by(Pclass) %>% 
+    summarise(average = mean(Fare)) 
+  
+formattable(fare, 
+            align = c("c","c" ),
+            list('Pclass' = formatter(
+              "span" , style = ~style(color = "gray", font.weight = "bold" )),
+              'average' = color_tile("#DeF7E9", "#71CA97")))
+
+```
+
+
+**Observations:** We can clearly see the largest difference in mean values for fare price between second and first class. This can be due to some of the outliers taht are present in the dataset. Regardless, there is a clear distinction between first and second class. The average price however from second to third class passangers is not as great. This could be due to the margninal difference between the accomodations or the fact that first class costs so much more than second and third. Regardless, third class if of course the cheapest option when wanting to travel on the Titanic. 
+
+
+## Part VI: Visualization 
+
+
+```{r, warning=FALSE}
+ggplot(titanic_df, aes(x = Age, y = Fare, color = factor(Pclass)))+
+  geom_jitter()+
+  geom_smooth(method = lm, alpha = 0.2)+
+  labs(color = "Class")+
+  xlab("Age of passangers")+
+  ylab("Fare paied by passangers")+
+  ggtitle("Age and Fare per Passanger")+
+  theme_light()+
+  theme(plot.title = element_text(colour = "steelblue", face = "bold", size = (15)), 
+        legend.title = element_text(colour = "steelblue", face = "bold.italic"), 
+        legend.text = element_text(colour="steelblue4", face = "italic"),
+        axis.title = element_text(colour = "steelblue4", size = (10)),
+        axis.text = element_text(colour = "steelblue", size = (10)))
+
+```
+
+**Observations:** When we look at the relationship between Age of passangers and the Fare paid by each passanger we do not see a defined relatinship. The Fare prices are spread pretty evenly amongs the ages of the individuals. When we look at the Class distributions we still dont see any clear relationship. It is not untill we add a linear regression model on top of the graph when we see a small relationship. It seems to be the case that first and second class passangers did pay differnet fares depending on their age. However, When we observe firs class passanger data, we see that older passangers payed less than younger passangers. This relationship does have greater variation which needs to be factored into the regression. Despite this, there is still a relation between the Age of the passangers and the Fair paid by those passangers in first class but not in second and third class. 
+
+```{r, warning=FALSE}
+
+ggplot(titanic_df, aes(x = Age, y = SibSp, color = factor(Pclass)))+
+  geom_jitter()+
+  geom_smooth(method = lm, alpha = 0.2)+
+  labs(color = "Class")+
+  xlab("Age of passangers")+
+  ylab("Number of Siblings or Spuses")+
+  ggtitle("Age and Number of Siblings/Spouses per Passanger")+
+  theme_light()+
+  theme(plot.title = element_text(colour = "steelblue", face = "bold", size = (15)), 
+        legend.title = element_text(colour = "steelblue", face = "bold.italic"), 
+        legend.text = element_text(colour="steelblue4", face = "italic"),
+        axis.title = element_text(colour = "steelblue4", size = (10)),
+        axis.text = element_text(colour = "steelblue", size = (10)))
+```
+
+**Observations:** When we visualize the data between Age of passangers and the number of siblings and/or spouses we see the oposite of what we observed before. Younger passangers will travel with more siblings or spouces compared to older passangers, this is most likely due to families traveling with younger children compared to older passangers who do not have children or do not travel with children. When we add the different classes into the equation, once again there was no clear connection between the variables at first sight but when we add linear regression models to the equation. After this we are able to observe that there is no distinction in first and second class. This can be because passangers with small families are easier able to spend the money on better class tickets. Passangers with younger kids or younger children traveling with adults will most likely not be able to afford upper class tickets for all of the family. This means that younger passangers with lots of children will book third class tickets and will be younger compared to older passangers who travel with less children and therefore can afford to book second or third class tickets. 
+
+```{r}
+ggplot(titanic_df, aes(x = Pclass, fill=factor(Pclass)))+
+  geom_bar()+
+  xlab("Class of Passanger")+
+  ylab("Number of Passanger")+
+  ggtitle("Number of Passangers Per class")+
+  labs(fill = "Class")+
+  theme_light()+
+  theme(plot.title = element_text(colour = "steelblue", face = "bold", size = (15)), 
+        legend.title = element_text(colour = "steelblue", face = "bold.italic"), 
+        legend.text = element_text(colour="steelblue4", face = "italic"),
+        axis.title = element_text(colour = "steelblue4", size = (10)),
+        axis.text = element_text(colour = "steelblue", size = (10)))
+```
+
+**Observations:** There is a clear differnece in number of passangers per class. We see that third class passangers have more than half of the ships copacity. This is most liekly due to third class cabins being smaller and there can be more rooms for third class passangers compared to the larger rooms of second class and the even larger rooms of first class. The larger group of first class compared to second class is a bit confusing. I would have predicted that there would have been a more linear regression from third, second and first class, meanign that third class would have the greatest amount of passangers, second the middle amount and first class the smallest amount of passangers. Despite my prediction being wrong, the third class passangers still represent over half of all passangers. 
+
+
+```{r}
+ggplot(titanic_df, aes(x = factor(Pclass), y = Fare, fill=factor(Pclass)))+
+  geom_boxplot()+
+  labs(fill = "Class")+
+  xlab("class")+
+  ylab("Fare Prices")+
+  ggtitle("Fare Prices per Class")+
+  theme_light()+
+  theme(plot.title = element_text(colour = "steelblue", face = "bold", size = (15)), 
+        legend.title = element_text(colour = "steelblue", face = "bold.italic"), 
+        legend.text = element_text(colour="steelblue4", face = "italic"),
+        axis.title = element_text(colour = "steelblue4", size = (10)),
+        axis.text = element_text(colour = "steelblue", size = (10)))
+```
+
+**Observations:** When comparing the amount of money spend on fare prices according to class, we see a more regular progression. As I had predicted and as we saw earlier, the first class passangers payed more than second class passangeres who payed more than third class passangers. The interesting finding is that the distibution of prices flucuates more the higher your class is. Third class seams to have a very tight, small middle two quadrants, this means that most of the passangers payed the same price for their tickets. Second class as a larger middle two quadrants, meaning that the second class passangers had a larger variation in ticket prices. Lastly, first class passangers had a significantly larger middle two quadrants. Passangers in first class payed a larger range of prices for their tickets. Of course there are outliers in each group which bring up the mean but the box plots show a clear difference between classes. A interesting finding is that some third class passangers as well as second class passangers paid the same price as first class passangers if not more, for lower tickets. 
+
+
+
+
