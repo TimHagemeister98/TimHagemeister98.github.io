@@ -1,0 +1,255 @@
+---
+title: "Project 2"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: paper
+
+  
+---
+
+```{r setup, include=FALSE}
+
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+library(GGally)                                                           #
+library(Hmisc)                                                            #
+library(corrplot)                                                         #                                           #
+library(ggpubr)
+library(gridExtra)#
+library(grid)
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+library(GGally)                                                           #
+library(Hmisc)                                                            #
+library(corrplot)                                                         #
+library(PerformanceAnalytics)                                             #
+library(expss)
+
+# 
+theme_set(                                #this sets the theme for all    #
+theme_tufte() +                         #plots that we make               #
+theme(text=element_text(family="sans")) +                                 #
+theme(axis.text.x = element_text(angle=-90))                              #
+)                                                                         #
+                                                                          #
+                                                                          #
+DeathP <- read_csv("Death penalty data.csv")                                 #
+                                   #
+                                                                          #                                                                                        #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+# Introduction
+
+In this lab, we’ll be making and interpreting contingency tables based on the death penalty dataset. Students will demonstrate knowledge of basic probability concepts in the context of a real-world dataset.
+
+```{r}
+setnames(DeathP , old=c("Date",
+                     "Name",
+                     "Age",
+                     "Sex",
+                     "Race",
+                     "Crime",
+                     "Victim Count",
+                     "Victim Sex",
+                     "Victim Race",
+                     "County",
+                     "State",
+                     "Region",
+                     "Method",
+                     "Juvenile",
+                     "Volunteer",
+                     "Federal",
+                     "Foreign National"), 
+              new=c("Date",
+                     "Name",
+                     "Age",
+                     "Sex",
+                     "Race",
+                     "Crime",
+                     "VictimCount",
+                     "VictimSex",
+                     "VictimRace",
+                     "County",
+                     "State",
+                     "Region",
+                     "Method",
+                     "Juvenile",
+                     "Volunteer",
+                     "Federal",
+                     "ForeignNational"))
+```
+
+# Questions
+
+***
+
+**1) If an executed prisoner is randomly selected from the data, what’s the probability that they died by lethal injection?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```
+- Probability of random lethal injection = $1267/1442 = 0.879$
+
+***
+
+**2) If three executed prisoners are randomly selected from the data, what’s the probability that all three died by lethal injection? What assumption must you make in order to compute this probability? Is that a reasonable assumption?**
+
+- in order to predict this probability, we have to multiply the probability of one lethal injection by the same probability twice. P(lethal injection) x P(lethal injection) x P(lethal injection) = **0.679**
+
+***
+
+**3) If an executed prisoner is randomly selected from the data, what’s the probability that they died by lethal injection given that they were executed in the south?**
+
+- A given probability would mean that there is both P(lethal injection) as well as P(South)
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```
+-Therefore the probability of a lethal injection in the south would P(south) = 1175/1442 multiplied by P(Lethal injection) = 1267/1442 which equals: **0.716**  
+
+***
+
+**4) If an executed prisoner is randomly selected from the data, what’s the probability that either they’re black or that they died in the south?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Race, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```
+
+- to calculate or probabilities we use the formula: $p(A or B)= p(A) - p(B) - P(A and B)$ this would mean that for this equation we would use the following 
+
+- p(Black or Died in the South) = p(Black) + p(Died in the South) - p(Black and died in the Sotuh)
+
+- p(Black or Died in the stouh) = (495/1442) + (1175/1442) - ((1175/1142)x(495/1142)) = **0.712**
+
+***
+
+**5) If an executed prisoner is randomly selected from the data, what’s the probability that they’re both black and they died by electrocution?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Race)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```
+- to calculate or probabilities we use the formula: $p(A or B)= p(A) - p(B) - P(A and B)$ this would mean that for this equation we would use the following 
+
+- p(Black or Died by electricution) = p(Black) + p(Died by electricution) - p(Black and Died by electricution)
+
+- p(Black or Died by electricution) = (495/1442) + (158/1442) - ((158/1142)x(495/1142)) = **0.393**
+
+***
+
+**6) Consider the events A and B, where:**
+
+- **A = the event that a randomly selected executed prisoner is from the Midwest.**
+
+- **B = the event that a randomly selected executed prisoner died by firing squad.**
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+```      
+- **Are events A and B mutually exclusive? Why or why not?**
+
+  - The events are mutually exclusive, this is because the probability of one does not affect the probability of another. 
+  
+***
+
+**7) Consider the events A and B, where:**
+
+- **A = the event that a randomly selected executed prisoner is from the Midwest.**
+
+- **B = the event that a randomly selected executed prisoner died by firing squad.**
+
+  - **Using the definition of independence established in class, are events A and B independent? Why or why not? Is that the end of the story? Are we convinced one way or the other?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+```      
+
+- Using the definition of independence established in class, we can prove this by finding the probability of: p(Midwest and Firing Squad) = p(Midwest) x p(Firing squad) 
+  
+  - p(midwest and Firing Squad) = 178/1442 x 3/1442 = 0.000257 which is very very close to 0 
+  
+***
+
+**8) Suppose X = the number of victims killed by a prisoner who’s received the death penalty. Construct a probability distribution for X. Find the mean and variance of X.**
+
+```{r}
+
+ggplot(DeathP, aes(x=VictimCount)) + 
+    geom_histogram(aes(y=..density..), 
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  
+
+```
+
+- This plot does not tell the full story, this is because of an outlier in the dataset, We will try this data again without the outlier. 
+
+```{r}
+
+ggplot(DeathP, aes(x=VictimCount)) + 
+  xlim(c(0, 10))+
+  geom_histogram(aes(y=..density..), 
+                   binwidth=1,
+                   colour="black", fill="white") +
+  geom_density()+
+  geom_vline(aes(xintercept=mean(VictimCount,
+                na.rm=T)),color="red",
+                linetype="dashed", size=1)
+
+```
+
+***
+
+**9) Referring to all the probabilities you’ve computed above: are these theoretical probabilities or relative frequency probabilities? How does that contextualize the conclusions you’ve made? What does the Law of Large Numbers have to say about it all?**
+
+- The relative frequency of an event is defined as the number of times that the event occurs during experimental trials, divided by the total number of trials conducted
+
+- Theoretical probability is probability calculated during experiments, direct observation, experience, or practice.
+
+- During our probability calculations, we analysed the relative frequency of our data. This helps determine the true frequency of events related to the total number of times a event has occured. 
+
+- In probability theory, the law of large numbers is a theorem that describes the result of performing the same experiment a large number of times. According to the law, the average of the results obtained from a large number of trials should be close to the expected value, and will tend to become closer as more trials are performed.
+
+  - This means that since our data has a large number of individuals, and we are finding the relative frequency, the predicted values should be close to the expected value. 
+
