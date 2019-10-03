@@ -1,0 +1,483 @@
+---
+title: "Project 3: Death Penalty"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: paper
+
+  
+---
+
+```{r setup, include=FALSE}
+
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+library(GGally)                                                           #
+library(corrplot)                                                         #
+library(ggpubr)                                                           #
+library(gridExtra)                                                        #
+library(grid)                                                             #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(data.table)                                                       #
+library(ggplot2)                                                          #
+library(GGally)                                                           #
+library(Hmisc)                                                            #
+library(corrplot)                                                         #
+library(PerformanceAnalytics)                                             #
+library(expss)                                                            #
+library(readxl)                                                           #
+library(fiftystater)
+library(formattable)
+theme_set(                                #this sets the theme for all    #
+theme_tufte() +                         #plots that we make               #
+theme(text=element_text(family="sans")) +                                 #
+theme(axis.text.x = element_text(angle=-90))                              #
+)                                                                         #
+                                                                          #
+                                                                          #
+DeathP <- read_csv("Death penalty data.csv")                              #
+                                                                          #
+                                                                          #                                                                                                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+# Introduction
+
+In this lab, we’ll be making and interpreting contingency tables based on the death penalty dataset. I will demonstrate knowledge of basic probability concepts in the context of a real-world dataset.
+
+```{r}
+setnames(DeathP , old=c("Date",
+                     "Name",
+                     "Age",
+                     "Sex",
+                     "Race",
+                     "Crime",
+                     "Victim Count",
+                     "Victim Sex",
+                     "Victim Race",
+                     "County",
+                     "State",
+                     "Region",
+                     "Method",
+                     "Juvenile",
+                     "Volunteer",
+                     "Federal",
+                     "Foreign National"), 
+              new=c("Date",
+                     "Name",
+                     "Age",
+                     "Sex",
+                     "Race",
+                     "Crime",
+                     "VictimCount",
+                     "VictimSex",
+                     "VictimRace",
+                     "County",
+                     "State",
+                     "Region",
+                     "Method",
+                     "Juvenile",
+                     "Volunteer",
+                     "Federal",
+                     "ForeignNational"))
+```
+
+# Questions
+
+***
+
+**1) If an executed prisoner is randomly selected from the data, what’s the probability that they died by lethal injection?**
+
+```{r, fig.align='center'}
+
+DeathP %>% 
+  calc_cro(Method) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+``` 
+  
+- The probability of random lethal injection would equal the number of lethal injections over the number of total cases= $1267/1442 = 0.879$
+
+***
+
+**2) If three executed prisoners are randomly selected from the data, what’s the probability that all three died by lethal injection? What assumption must you make in order to compute this probability? Is that a reasonable assumption?**
+
+- in order to predict this probability, we have to multiply the probability of one lethal injection by the same probability Three times. Since the number of lethal injections is more than 5% of the total cases, it is probably best if we do not repalce the cases, therefore the equation is as follows: 
+
+  - P(lethal injection) x P(lethal injection) x P(lethal injection) = 
+  
+  - (1267/1442) x (1266/1441) x (1265/1440) = **0.678** 
+  
+  - during this probelm, we did not replace the subjects, this is because the value is greater than 5% of the total number of participants, thereofre we need to replace the value since 5% is the rule of thumb discussed in class. 
+  
+
+***
+
+**3) If an executed prisoner is randomly selected from the data, what’s the probability that they died by lethal injection given that they were executed in the south?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+
+```
+- A given probability would mean that there is lethal injections [P(lethal injection)] given that they are part of the south [P(South)]
+
+  - Therefore the equation that we need to use is P(Lethal injections | South) = P(Lethal injections and South)/ P(South)
+
+  - P (Lethal injections | South) = ((1267/1442) x (1175/1442)) / (1175/1442) = **0.879**
+
+
+***
+
+**4) If an executed prisoner is randomly selected from the data, what’s the probability that either they’re black or that they died in the south?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Race, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 130px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```
+
+- to calculate or probabilities we use the formula: $p(A or B)= p(A) + p(B) - P(A and B)$ this would mean that for this equation we would use the following 
+
+- p(Black or Died in the South) = p(Black) + p(Died in the South) - p(Black and died in the Sotuh)
+
+- p(Black or Died in the south) = (495/1442) + (1175/1442) - ((1175/1442)x(495/1442)) = **0.878**
+
+***
+
+**5) If an executed prisoner is randomly selected from the data, what’s the probability that they’re both black and they died by electrocution?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Race)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+
+
+```
+- to calculate or probabilities we can just look at our chart that we created and observe how many individuals were black as well as died by electricution. 
+
+- p(Black or Died by electricution) = 70/1442 = **0.0485**
+
+
+
+***
+
+**6) Consider the events A and B, where:**
+
+- **A = the event that a randomly selected executed prisoner is from the Midwest.**
+
+- **B = the event that a randomly selected executed prisoner died by firing squad.**
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+```      
+- **Are events A and B mutually exclusive? Why or why not?**
+
+  - The events are mutually exclusive, this is because the two events, *Midwest* and *Death by firing squad* are imposible to happen at the same time. 
+  
+***
+
+**7) Consider the events A and B, where:**
+
+- **A = the event that a randomly selected executed prisoner is from the West.**
+
+- **B = the event that a randomly selected executed prisoner died by firing squad.**
+
+  - **Using the definition of independence established in class, are events A and B independent? Why or why not? Is that the end of the story? Are we convinced one way or the other?**
+
+```{r}
+DeathP %>% 
+  calc_cro(Method, list(total(), Region)) %>% 
+  htmlTable(., css.cell = c("width: 150px", 
+      rep("width: 80px", ncol(.) - 1)))
+
+```      
+
+- Using the definition of independence established in class, in which it does not matter wheather B occurs or not, it does not chagne the probability of A and visa versa.Therefore we can prove this by finding the probability of: p(West and Firing Squad) = p(West) x p(Firing squad) 
+  
+  - p(West and Firing Squad) = 85/1442 x 3/1442 = 0.000123
+    - p(west) = 85/1442 = 0.0589
+    - p(firing squad) = 3/1442 =0.00208
+    
+- When multiplied together, we can see that these two events **match**, this means that P(both) matches the probability of West and Firing squad. Therefore we can conclude that these variables are independent. This means that probability of one does not affect the probability of the other. 
+  
+***
+
+**8) Suppose X = the number of victims killed by a prisoner who’s received the death penalty. Construct a probability distribution for X. Find the mean and variance of X.**
+
+```{r}
+
+ggplot(DeathP, aes(x=VictimCount)) + 
+    geom_histogram(aes(y=..density..), 
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  
+
+```
+
+This plot does not tell the full story, this is because of an outlier in the dataset, We will try this data again without the outlier. 
+
+```{r}
+noout<- DeathP %>% 
+  filter(Name != 'Timothy McVeigh*',Name != 'Ronald Simmons',Name != 'John Gacy')
+
+ggplot(noout, aes(x=VictimCount))+ 
+  geom_histogram(aes(y=..density..), 
+                   binwidth=1,
+                   colour="black", fill= "lightblue")+
+  theme_bw()+
+  scale_x_discrete(limits=c(1,2,3,4,5,6,7,8,9,10))
+  
+
+```
+
+
+In addition we can observe discrete Probability Distributions again without the outliers as to not skew the data too hard, therefore we will be focusing on individuals with 10 or fewer Victim Counts.
+
+```{r}
+Death1 <- length(which(DeathP$VictimCount == 1))
+Death2 <- length(which(DeathP$VictimCount == 2))
+Death3 <- length(which(DeathP$VictimCount == 3))
+Death4 <- length(which(DeathP$VictimCount == 4))
+Death5 <- length(which(DeathP$VictimCount == 5))
+Death6 <- length(which(DeathP$VictimCount == 6))
+Death7 <- length(which(DeathP$VictimCount == 7))
+Death8 <- length(which(DeathP$VictimCount == 8))
+Death9 <- length(which(DeathP$VictimCount == 9))
+Death10 <- length(which(DeathP$VictimCount == 10))
+
+
+
+numberofvictims<- c(1,2,3,4,5,6,7,8,9,10)
+probability0 <- c(1081/1439,169/1439,86/1439,34/1439,11/1439,6/1439,0/1439,1/1439,1/1439,0/1439)
+
+probability<- formatC( round(probability0, 3), format='f', digits=3 )
+bind <- cbind(numberofvictims,probability)
+bind2 <- data.frame(bind)
+
+
+formattable(bind2,
+            align = c("c","c" ),
+            list('probability' = formatter(
+              "span" , style = ~style(color = "gray", font.weight = "bold" )),
+              'probability' = color_tile("white", "lightblue")))
+```
+
+We can also look at the different statistical analysis of the data without the outliers. (1-10). 
+
+
+```{r}
+#This is the values for the ones without outliers, 
+noout<- DeathP %>% 
+  filter(Name != 'Timothy McVeigh*',Name != 'Ronald Simmons',Name != 'John Gacy')
+
+Analysis<- c("min","Max","Median","S.D.","Variance", "Mean", "Expected Value")
+V1 <- c(1.00,9.00,1.00, 0.857, 0.734, 1.40, 1.335)
+
+Values<- formatC( round(V1, 3), format='f', digits=3)
+bind3 <- cbind(Analysis,Values)
+bind4 <- data.frame(bind3)
+
+Values<- formatC( round(V1, 3), format='f', digits=3)
+bind3 <- cbind(Analysis,Values)
+bind4 <- data.frame(bind3)
+
+
+formattable(bind4,
+            align = c("l","l" ),
+            list('probability' = formatter(
+             style = ~style(color = "gray", font.weight = "bold" )),
+              'probability' = color_tile("white", "lightblue")))
+```
+
+- Expected value is 1.335, this is pretty close to the mean, the law of large number again would say that the more people we have the close the mean would be to the expected value. This means that the expected murderer on death row has kill 1.335 people. The variance is quite small, this is becasuse we have a large amount of individuals who had a victim count of 1, since we did not include the outliers in the dataset, the majority of the criminals had a victim count around 1.4 +/- 0.73. 
+
+***
+
+**9) Referring to all the probabilities you’ve computed above: are these theoretical probabilities or relative frequency probabilities? How does that contextualize the conclusions you’ve made? What does the Law of Large Numbers have to say about it all?**
+
+- The relative frequency of an event is defined as the number of times that the event occurs during experimental trials, divided by the total number of trials conducted
+
+- Theoretical probability is the total number of times a given result came up in an experiment or study; the total number of times an event occurs. It can be said that frequency simply means the rate of occurrence. 
+
+- During our probability calculations, we analysed the relative frequency of our data. This helps determine the  frequency of events related to the total number of times a event has occured. 
+
+- In probability theory, the law of large numbers is a theorem that describes the result of performing the same experiment a large number of times. According to the law, the average of the results obtained from a large number of trials should be close to the expected value, and will tend to become closer as more trials are performed.
+
+  - This means that since our data has a large number of individuals, and we are finding the relative frequency, the predicted values should be close to the expected value.  
+
+*** 
+
+# Extra Analysis: 
+
+I thought that the probability analysis was interesting, but I wanted to do some extra analysis as I found the data interesting and I wanted to use the skills I have learned and apply them to this dataset.   
+  
+```{r}
+
+DeathEx <- read_excel('DeathEx.xlsx')
+data("fifty_states") 
+
+ggplot(DeathEx, aes(map_id = state)) + 
+  geom_map(aes(fill = Death), map = fifty_states) + 
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map() +
+  scale_x_continuous(breaks = NULL) + 
+  scale_y_continuous(breaks = NULL) +
+  scale_fill_gradient()+ 
+  labs(x = "Longitude", y = "Latitude", title='US Executions since 1977', 
+       subtitle = "States with 0 executions in grey", fill='# Executions')+
+  theme(legend.position = "right", 
+        panel.background = element_blank())+
+  theme(panel.background = element_rect(fill = NA)) +
+  theme(plot.subtitle = element_text(hjust = 0.5, 
+    vjust = 1), plot.caption = element_text(vjust = 0), 
+    plot.title = element_text(hjust = 0.5))+
+  fifty_states_inset_boxes() 
+```
+
+
+```{r}
+ggplot(DeathEx, aes(map_id = state)) +  
+  geom_map(aes(fill = Death), map = fifty_states) + 
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map() +
+  scale_x_continuous(breaks = NULL) + 
+  scale_y_continuous(breaks = NULL) +
+  scale_fill_gradient(trans = "log10")+
+  labs(x = "Longitude", y = "Latitude", title='US Executions since 1977',
+       subtitle = "States with 0 executions in grey", fill='# Executions log10')+
+  theme(legend.position = "right", 
+        panel.background = element_blank())+
+  theme(panel.background = element_rect(fill = NA)) +
+  theme(plot.subtitle = element_text(hjust = 0.5, 
+    vjust = 1), plot.caption = element_text(vjust = 0), 
+    plot.title = element_text(hjust = 0.5))+
+  fifty_states_inset_boxes() 
+```
+
+
+Through looking at the first map, we see that Texas has an extrordinary amount of death penalty deaths in the United States since 1977. However, this does not give us a good picture to be able to view how the death penalty is distributed throughout the country. This is becasue Texas has so many more than every other state. Therefore if we take the Log10 of the number of executions we are still able to see the relationship between the states but in a smaller range and better distinctions between States. Therefore we are able to now see the difference between states in the West which we were unable to do previously. In addition we are able to see the states that do not have a death penalty as well as different regions in the United states, those with high, medium and low amounts of executions, which we will observe in more down below.  
+
+***
+
+```{r}
+DeathP %>%
+  count(Region)%>%
+  ggplot(aes(reorder(Region, n),n, fill=Region))+
+  geom_col(position = 'dodge', width = .5)+
+  theme_bw()+
+  labs(y='Count of executions', x='Region of USA', title='Which Regions Execute Most?')
+```
+Here we are able to see something similar to the map only in a more categorical representatio We are able to see that the south has an extrordinary amount of death penalties. Of course this is with the inclution of texas which has more death penalties than any other state. This still shows that the south is the dominant region when it comes to death penalties in the United states. Likewise we are able to see that the Northeast region of the united states has very few compared to even the midwest or western United States. 
+
+
+To continue this small exploration, I wanted to look at the top 5 states primarly as they have the most amount of data. I thought it would be interesting to look at the distribution of excecuted age as well as the racial breakdown between states. 
+
+***
+
+```{r}
+DeathP %>%
+  mutate(new_state = fct_lump(State, n=5))%>%
+  group_by(new_state)%>%
+  mutate(new_state_ct = n(),
+         avg_age = round(mean(Age),1),
+         med_age = round(median(Age),1))%>%
+  ggplot(aes(Age, fill=new_state))+
+  geom_histogram(bins=20)+
+  geom_text(aes(x = 50, y= 40,label = paste("Total Executions:",new_state_ct,'\n','Mean Age:',avg_age)), color='red', size=3)+
+  geom_vline(aes(xintercept = med_age))+
+  facet_wrap(~ new_state)+
+  guides(fill=FALSE)+
+  theme_bw()
+
+```
+We will look at the top 5 states, Florida, Texas, Virgina, Missouri, Oklahoma as well as the rest of the states displayed as "Other". Here we are able to see that Texas has the largest amount of younger inmates being excecuted. Although virgina has the lowest age by 4 years, they only have about a fifth of the total nuymber of excecutions. Florida on the other hand has the oldest mean age of excecution. This could be due to the older average age of florida or due to regulations in their system on how long it takes for inmates to be executed in different states. Although I can not be certain of the reason for excecution, It is interesting to see the relationship to age and difference between states.
+
+***
+
+Furthermore, I wanted to look at the age difference between men and Women on death road. 
+
+```{r}
+
+med_age <- DeathP %>%
+  group_by(Sex)%>%
+  summarise(cts = n(),
+            med_age = median(Age, na.rm=TRUE))
+  
+plot_gender <- DeathP %>%
+  group_by(Sex)%>%
+  ggplot(aes(Age, fill=Sex))+
+  geom_density(alpha=.5)
+
+plot_gender + 
+  geom_vline(xintercept = med_age$med_age[1], data=med_age, color='red')+
+  geom_vline(xintercept = med_age$med_age[2], data=med_age, color='blue')+
+  theme_bw()+
+  labs(title='Gender')+
+  geom_text(aes(x = 60, y= 0.035,label = paste("Women: 46.5", "\n", "Men: 40")), color='black', size=4)
+
+```
+
+
+When looking at the above data we have to take into consideration that there are more men than women and the data for women is not as deep. However we still see that the majority of men are executed earlier compared to Women. This is also refelcted in the mean values for both men and women which have a difference of six and a half years. This is a important finding when observing death penalties in the United states. 
+
+***
+
+```{r}  
+DeathP %>%
+  mutate(new_state = fct_lump(State, n=5))%>%
+  group_by(new_state)%>%
+  mutate(Race = fct_lump(Race, n=2))%>%
+  count(Race)%>%
+  ggplot(aes(reorder(Race,n),n, fill=Race))+
+  geom_col()+
+  coord_flip()+
+  facet_wrap(~ new_state)+
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45))+
+  labs(y='Count of executions', x='Race of executed', title='Racial Breakdown of top 5 States')  
+```
+
+Since a lot of our probability analysis was regarding race of Excecuted individuals, I though that it would be interesting again to look at the top 5 states, Florida, Texas, Virgina, Missouri, Oklahoma as well as the rest of the states displayed as "Other", in regards of race. We see that the greatest racial category in each state as well as every other state is primarely White, With the majority of "Other" in Texas. I find this very intersting as there is a ongoing problem with race in the prison system in america which is not displayed here in this data. This could be as it has been a recent evolvmenet or other unknown variables . 
+
+***
+
+# Conclusion 
+
+I found it interesting to look at probability, yet I think looking at visuals is also important. The individual probability questions gave us a lot of insight into specific problems of race, execution of of age. The most facinating part was looking at the expected value of number of victims a death row inmate can have. What struck me the most when looking at the average is that the mean age for male inmates is exactly 40. What is so special about this number, why do people get executed at the age of 40? It was nice to see a map of the united states in order to visualize the amount of executions in the united states. For further research I would like to look at murder rates in relationship to death penalty rates over the years. I tried to graph the years in relationship to amount of executions but the data set was not able to convert the dates into years for all the inmates, this left me with a lot of NA values that caused me ultimatly not be able to be able to do this analysis. Overall I thought that this was a very interesting data set that had a lot of potential to experience first hand probability with a real dataset. 
+
+
+
+
+
+
+
+
