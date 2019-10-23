@@ -1,0 +1,690 @@
+---
+title: "Lab 3 IMDB"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: paper
+  
+---
+
+```{r setup, include=FALSE}
+
+#These are the packages that we will need 
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(pastecs)
+library(psych)
+library(stargazer)
+library(formattable)
+library(expss)
+library(GGally)
+library(gridExtra)
+library(grid)
+library(ggpubr)
+library(knitr)
+library(kableExtra)
+library(ggthemes)
+library(data.table)
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+library(corrplot) 
+library(PerformanceAnalytics)  
+library(compareDF)
+library(jtools)
+library(data.table)
+
+
+
+
+# Setting up the directory                         #
+                                                                          #
+Movies <- read.csv("imdb_data.csv")
+Metadata <- read_excel("Metadata.xlsx")
+
+
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+## Part I:What is International Movie Database (IMDB)?
+
+IMDb (Internet Movie Database) is an online database of information related to films, television programs, home videos, video games, and streaming content online – including cast, production crew and personal biographies, plot summaries, trivia, fan and critical reviews, and ratings. An additional fan feature, message boards, was abandoned in February 2017. Originally a fan-operated website, the database is owned and operated by IMDb.com, Inc., a subsidiary of Amazon. As of May 2019, IMDb has approximately 6 million titles (including episodes) and 9.9 million personalities in its database,[2] as well as 83 million registered users. IMDb began as a movie database on the Usenet group "rec.arts.movies" in 1990, and moved to the web in 1993.
+ 
+## Part II: Descriptive Statistics
+
+```{r, warning=FALSE}
+MoviesL<- setnames(Movies, old=c("Rank", 
+                          "Title",
+                          "Genre",
+                          "Description",
+                          "Director", 
+                          "Actors", 
+                          "Year",
+                          "Runtime..Minutes.",
+                          "Rating", 
+                          "Votes", 
+                          "Revenue..Millions.", 
+                          "Metascore"),
+                    new=c("Rank", 
+                          "Title",
+                          "Genre",
+                          "Description",
+                          "Director", 
+                          "Actors", 
+                          "Year",
+                          "Runtime",
+                          "Rating", 
+                          "Votes", 
+                          "Revenue", 
+                          "Metascore"))
+```
+         
+
+```{r, warning=FALSE}
+WA <- MoviesL
+WA %>% 
+    tab_cells(Year, Runtime, Rating, Votes, Revenue, Metascore) %>%
+    tab_cols(total(label = "#Total")) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>% 
+    htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 120px", ncol(.) - 1)))
+```
+
+
+
+
+```{r, warning=FALSE}
+
+a1 <- ggplot(MoviesL, aes(x=Runtime))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=1,
+                  colour="black", 
+                 fill= "blue", 
+                 alpha = 0.5)+
+  theme_bw()
+a <- ggplot(MoviesL, aes(x=Runtime))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=2,
+                  colour="black", 
+                 fill= "blue", 
+                 alpha = 0.5)+
+  theme_bw()
+
+############
+b1 <- ggplot(MoviesL, aes(x=Rating))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=1,
+                  colour="black", 
+                 fill= "red", 
+                 alpha = 0.5)+
+  theme_bw()
+b <- ggplot(MoviesL, aes(x=Rating))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=0.25,
+                  colour="black", 
+                 fill= "red", 
+                 alpha = 0.5)+
+  theme_bw()
+
+############
+c1 <- ggplot(MoviesL, aes(x=Votes))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=1,
+                  colour="black", 
+                 fill= "green", 
+                 alpha = 0.5)+
+  theme_bw()
+
+c <- ggplot(MoviesL, aes(x=Votes))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=30000,
+                  colour="black", 
+                 fill= "green", 
+                 alpha = 0.5)+
+  theme_bw()
+###########
+d1 <- ggplot(MoviesL, aes(x=Revenue))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=1,
+                  colour="black", 
+                 fill= "lightblue", 
+                 alpha = 0.5)+
+  theme_bw()
+d <- ggplot(MoviesL, aes(x=Revenue))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=50,
+                  colour="black", 
+                 fill= "lightblue", 
+                 alpha = 0.5)+
+  theme_bw()
+##########
+e1 <- ggplot(MoviesL, aes(x=Metascore))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=1,
+                  colour="black", 
+                 fill= "darkred", 
+                 alpha = 0.5)+
+  theme_bw()
+e <- ggplot(MoviesL, aes(x=Metascore))+ 
+  geom_density()+
+  geom_histogram(aes(y=..density..), 
+                  binwidth=5,
+                  colour="black", 
+                 fill= "darkred", 
+                 alpha = 0.5)+
+  theme_bw()
+
+ggarrange(a1, a, b1, b, c1, c, d1, d, e1, e, 
+          ncol = 2, 
+          nrow = 5)
+
+```
+
+
+**1) What are your observations about the distributions of the variables above?**
+
+The distributions above do not seem to be a normal distribution, they either have a light skew to the right or to the left. In the case of Votes and revenue, we see a strong right skrew to the data. This means that there are a great number of movies with lower ratings and revenues compared to movies with a large vots or revenues. This will affect the mean as it will not be an accurate representation of our data. 
+
+**2)  What are the ranges?**
+
+The ranges of the data above is as follows: 
+
+  - Runtime: 66.0 - 191.0 
+  
+  - Rating: 1.9 - 9.0 
+  
+  - Votes: 61.0 - 1791916.0 
+  
+  - Revenue: 0.0 - 936.6 
+  
+  - Metascore: 11.0 - 100.0 
+
+**3)  Are there any outliers?**  
+
+  - There seem to be outliers in some category, either on the low end or the high end. For Runtime, Rating and Metascore there seems to be no outliers. However when we look at revenue and votes. There seem to be outliers on the upper end. This is because some movies in our dataset are extreemly sucessful. However, there are hundreds of movies produced a year, and not everyone can be sucessful. These few movies that end up being very sucessful, produce the outliers in our dataset. This would affect the mean greatly as they have a lot impact. 
+
+**4)  Are there any films that are “greatly” different than others?**
+
+  - Around the top 5-10 movies in both *Revenue* as well as *Votes* are greatly differenet than the rest, this is again due to the above reasons, some movies are extreemly sucessful, yet most movies do not make it to be so sucessful. 
+
+**5)  What happens when you change the bin size from 1 to 2? What differences do you see?**
+
+  - Having the correct Binwidth is important when you visualize data. If your binwidth is too small. lets say 1, it becomes hard to see the trend of the data as there might be too many points to accuratly visualize your data or the flucuations of the data cause the density variable to be inconsistent for an accurate reading (like when observing the Metascore, or in the case of Votes, it will not appear at all). If the binwidth is too high, it makes the data interpretation even harder as it categorizes all the data points into two or three groups. This will not allow you to see a reasonable change in the data. Therefore it is crutial that you find the right binwidth. Therefore I changed the binwidth from the original (always on the left) to a more appropirate setting (On the right).
+
+
+```{r, warning=FALSE}
+MoviesL$Comedy <- ifelse(grepl("Comedy", MoviesL$Genre, ignore.case = T), "Comedy","Not Comedy")
+MoviesL$Action <- ifelse(grepl("Action", MoviesL$Genre, ignore.case = T), "Action","Not Action")
+
+
+A1 <-ggplot(MoviesL,aes(x=Action, y=Runtime, color = Action)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+A2 <-ggplot(MoviesL,aes(x=Action, y=Rating, color = Action)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+A3 <-ggplot(MoviesL,aes(x=Action, y=Votes, color = Action)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+A4 <-ggplot(MoviesL,aes(x=Action, y=Revenue, color = Action)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+A5 <-ggplot(MoviesL,aes(x=Action, y=Metascore, color = Action)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+
+C1 <-ggplot(MoviesL,aes(x=Comedy, y=Runtime, color = Comedy)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+C2 <-ggplot(MoviesL,aes(x=Comedy, y=Rating, color = Comedy)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+C3 <-ggplot(MoviesL,aes(x=Comedy, y=Votes, color = Comedy)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+C4 <-ggplot(MoviesL,aes(x=Comedy, y=Revenue, color = Comedy)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+C5 <-ggplot(MoviesL,aes(x=Comedy, y=Metascore, color = Comedy)) + 
+    geom_boxplot() + 
+    geom_jitter(width=0.25, alpha=0.05)+
+    theme(legend.position = "none",
+          axis.text.y=element_blank(),
+          axis.title.x=element_blank())
+
+
+
+ggarrange(A1, A2, A3, A4, A5, C1, C2, C3, C4, C5, 
+          ncol = 5, 
+          nrow = 2 )
+
+
+```
+
+**Add brief comments to your code and explain what your code is doing.**
+
+Here we see the representations of different categories to the adjasent variables, on top is the distinction between *Action* and *not action* and on the bottom are the distinctions between *comedy* and *not comedy*. This will allow us to see if there are any differences within the Genre of movies. The first Variable we observed was runtime, Action movies tend to have a longer runtime compared to Not action movies, however not Comedy movies tend to have a loger runtime compared to Comedy movies. When observing our second variable, Rating, we see no clear difference between the variables. However, in regards to the votes, Action movies tend to recieve more votes compared to not action movies and comedy mvoies tend to recieve a few less votes than not comedy movies which was very suprising to me. The fourth variable we observed, Revenue, had no distinctions between Comedy and not Comedy yet Action movies tend to have a distinct higher revenue compared to not action movies. Although there are a decent amount of outliers in the dataset, the middle 50% of the data is still significantly greater than not Action movies. The last variable we looked at was Metascore, once again there was no difference between Comedy and not Comedy movies. When comparing Action and not Action movies, we see that not action movies tend to have a higher overall metascore compared to Action movies, I think this is becasue Action movies are not for everyone as they can be quite violent. This analysis helped determine the affect of Genre on different types of variables in movies. 
+
+
+
+## Part III: Bivariate Statistics
+
+```{r, warning=FALSE}
+ggcorr(MoviesL, 
+       label = TRUE,
+       label_alpha = TRUE,
+       layout.exp = 0,
+       size = 3,
+       label_size = 4,
+       angle = -45)+
+       theme(plot.margin = unit(c(0,0,0,0), "cm"))
+```
+
+**What do you see at the end? Provide your comments about the heatmap. Which variables seem to be closely related?**
+
+The heat map shows us both in numbers as well as in colors how closely one variable is correlated, or affects, another variable. A corelation close to *1* shows a strong positive relationship, a corelation close to *-1* shows a strong negative relationship, and a corelation close to *0* shows that there is no relationwship. The variables that I found interesting were that year and votes were negatively corelated. They are not strongly negativly corelated but still more than the rest. This could be that older movies tend to not be votes as much as they do not have the modern technology or resolution of modern movies which might be voted higher. The other variables I wanted to investigate are all positivly corelated. Rating and Metascore have a Corelation value of *0.6*, this means that the higher rated movies tend to also have a higher metascore, as expected. In addition the corelation between Revenue and Votes is equally as high with a value of *0.6*, once again this seems like a reasonable corelation, movies with more votes ted to have a higher revenue. Movies that are accepted by people tend to be passed on and viewed more than movies that are not accpeted. In addition to votes, movies with a high rating also tended to get more votes which again seems like a reasonable deduction from our data. Overall this seems to be a interesting corelation as Revenue was not corelated with metascore at all which was showking to me. 
+
+
+
+```{r}
+
+Movies1 <- Movies [, c(7, 8, 9, 10, 11,12)]
+chart.Correlation(Movies1, histogram = TRUE)
+```
+
+**1)  Which variables seem to have a linear relationship?** 
+
+  - most of these variables tend to have a linear relationship, all the relationships within Runtime tend to be linear. In addition the relationship between votes and revenue + metascore, tend to have a loose linear relationship. the variables that have a strong relationship, we have already mentioned above, the rest of the variables tend to have a linear relationship but tend to be very weak. There are a few exceptions to this which we will talk down below. 
+
+**2) Which variables seem to have a non-linear relationship?** 
+
+  - the variables that seem to have a nonlinear relationship tend to only be two. The first one seems to be the relationship between rating and Votes, this makes sense as the higher the rating will be, the higher the votes will be, exponentially. Of course to conclude this hypothesis we would have to look closer at their relationship using a model yet through this observation we can with reasonable accuracy conclude that they have a nonlinear relationship. In addition the relationship between rating and MEtascore seems to have a odd, nonlinear relationship. This is because movies with a low rating thend ot have a lower metascore yet halfway through the data, the slope of the data points changes drastically to become much steeper. The reasoning for this is unknown to me what causes this change yet it is an interesting observation. 
+
+**3) Which variables seem to have no relationship?**
+
+  - The main variable which seemed to have no relationship at all was the Year that the movie came out. As we observed earlier with the corelations, Year the movie came out had no strong relation with any of the variables. IN addition there are a few Runtime variables that do not seem to have a relationship at all demonstrating that Runtime is not really important in predicting the outcome of the movies. 
+
+
+## Part IV: Distributions 
+
+```{r}
+
+
+MoviesL$JenniferGarner <- ifelse(grepl("Jennifer Garner", MoviesL$Actors , ignore.case = T), "With Jennifer Garner","Without Jennifer Garner")
+
+Jenn_df <- MoviesL[MoviesL$JenniferGarner == "Yes",]
+
+WB <- MoviesL 
+
+WB %>% 
+    tab_cells(Year, Runtime, Rating, Votes, Revenue, Metascore) %>%
+    tab_cols(JenniferGarner) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>%
+htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 70px", ncol(.) - 1)))
+
+
+```
+
+```{r}
+
+
+Runtime1<-pnorm(87, mean=113.3, sd = 18.8)*100
+Runtime2<-pnorm(109, mean=113.3, sd = 18.8)*100
+Runtime3<-pnorm(81, mean=113.3, sd = 18.8)*100
+Runtime4<-pnorm(106, mean=113.3, sd = 18.8)*100
+Runtime5<-pnorm(96, mean=113.3, sd = 18.8)*100
+Runtime6<-pnorm(117, mean=113.3, sd = 18.8)*100
+
+Year1<-pnorm(2016, mean=2012.8, sd = 3.2)*100
+Year2<-pnorm(2016, mean=2012.8, sd = 3.2)*100
+Year3<-pnorm(2014, mean=2012.8, sd = 3.2)*100
+Year4<-pnorm(2016, mean=2012.8, sd = 3.2)*100
+Year5<-pnorm(2007, mean=2012.8, sd = 3.2)*100
+Year6<-pnorm(2013, mean=2012.8, sd = 3.2)*100
+
+Rating1<-pnorm(5.3, mean = 6.7, sd = 0.9)*100
+Rating2<-pnorm(7.0, mean = 6.7, sd = 0.9)*100
+Rating3<-pnorm(6.2, mean = 6.7, sd = 0.9)*100
+Rating4<-pnorm(7.5, mean = 6.7, sd = 0.9)*100
+Rating5<-pnorm(7.5, mean = 6.7, sd = 0.9)*100
+Rating6<-pnorm(8.0, mean = 6.7, sd = 0.9)*100
+
+Votes1<-pnorm(12435, mean = 169985.8, sd = 188800.0)*100
+Votes2<-pnorm(12048, mean = 169985.8, sd = 188800.0)*100
+Votes3<-pnorm(32310, mean = 169985.8, sd = 188800.0)*100
+Votes4<-pnorm(291, mean = 169985.8, sd = 188800.0)*100
+Votes5<-pnorm(432461, mean = 169985.8, sd = 188800.0)*100
+Votes6<-pnorm(352801, mean = 169985.8, sd = 188800.0)*100
+
+Revenue1<-pnorm(19.64, mean = 83.2, sd = 103.5)*100
+Revenue2<-pnorm(61.69, mean = 83.2, sd = 103.5)*100
+Revenue3<-pnorm(66.95, mean = 83.2, sd = 103.5)*100
+Revenue4<-pnorm(0.01, mean = 83.2, sd = 103.5)*100
+Revenue5<-pnorm(143.49, mean = 83.2, sd = 103.5)*100
+Revenue6<-pnorm(27.30, mean = 83.2, sd = 103.5)*100
+
+Metascore1<-pnorm(11, mean = 59.0, sd = 17.1)*100
+Metascore2<-pnorm(44, mean = 59.0, sd = 17.1)*100
+Metascore3<-pnorm(54, mean = 59.0, sd = 17.1)*100
+Metascore4<-pnorm(61, mean = 59.0, sd = 17.1)*100
+Metascore5<-pnorm(81, mean = 59.0, sd = 17.1)*100
+Metascore6<-pnorm(84, mean = 59.0, sd = 17.1)*100
+
+
+```
+
+```{r}
+DT <- data.table(Movies = c("Nine Lives", "Miracles from Heaven", "Alexander and the Terrible, Horrible, No Good, Very Bad Day", "Wakefield", "Juno", "Dallas Buyers Club"),
+                 Runtime = c(Runtime1,Runtime2, Runtime3, Runtime4, Runtime5, Runtime6),
+                 Year = c(Year1,Year2, Year3, Year4, Year5, Year6),
+                 Rating = c(Rating1, Rating2, Rating3, Rating4, Rating5, Rating6),
+                 Votes = c(Votes1, Votes2, Votes3, Votes4, Votes5, Votes6),
+                 Revenue = c(Revenue1, Revenue2, Revenue3, Revenue4, Revenue5, Revenue6),
+                 Metascore = c(Metascore1, Metascore2, Metascore3, Metascore4, Metascore5, Metascore6))
+                 
+
+
+formattable(DT, 
+            align = c("l","c", "c", "c", "c", "c" ),
+            list('Movies' = formatter(
+              "span" , style = ~style(color = "gray", font.weight = "bold" )),
+              'Runtime' = color_tile("#DeF7E9", "#71CA97"),
+              'Year' = color_tile("#DeF7E9", "#71CA97"),
+              'Rating' = color_tile("#DeF7E9", "#71CA97"),
+              'Votes' = color_tile("#DeF7E9", "#71CA97"),
+              'Revenue' = color_tile("#DeF7E9", "#71CA97"),
+              'Metascore' = color_tile("#DeF7E9", "#71CA97")))
+```
+
+**1) What are some of your observations?** 
+
+- In the first chart we can observe the different statistical differences between movies that Jennifer Garner was in compared to movies that she was not in. The relationship between these variables is not too precise as there are a numerous amount of confound variables that also factors in to the movies. These variable include other actors, the budget of the movie as well as the director of the movie. Some movies that she stars in, like "Dallas Buyers Club: include a numerous amount of other *famous* actors that cound influence the numeric variables that we look at. However the variables that I focused on were Votes, Revenue, and Year. Although Jennifer Garner stars in a relatively small number of movies compared to the overall dataset, these variables still showed a difference. For example her Mean year was a full year higher compared to the rest of the dataset. This might be that she is a relatively young star and only recently became famous in movies that came out in the past few years. In addition Her revenue is 30 points below that of the mean of the rest of the variables. This could again be attributed to the fact that she is a younger artist and does not get paid as much or stars in movies that are overly successful. Her votes, although they seem quite a bit lower are very close to the mean of the average mean of votes, this means that her movies are getting quite a good acceptance from the general public. This is great to see as she is not the most established actor in the dataset. 
+
+**2) How do Jennifer Garner movies compare to the rest of the movies in the dataset?** 
+
+  - In the second graph above, we can see how Jennifer Garner's movies compare to the average and standard deviation of the rest of the movies. The first and clear observation that I made was that our prediction that her movies were relatively new seems to be true other than the movie "Juno" which seems to be one of the oldest movies in our data set. In addition her ratings were mostly abover the average with the highest being "Dallas Buyers Club". In general we can see that her top two movies in general were both "Juno" as well as "Dallas Buyers Club". This is consistant with the results in the Votes Category in which only "Juno" and "Dallas Buyers Club" were well abover the average in the 80-90 category. However regarding Revenue, "Juno" was the only one that was above average which seems suprising due to the sucess the "Dallas Buyers Club" had. I believe that her movies in general are either well accepted or not accepted at all, this means that the movies she is in are either really successful or not that successful which is surpising. As I mentioned earlier this can be due to a numerous amount of confounding variables that affect the sucess, rating, revenue and metascore of the rest of the dataset. 
+
+```{r}
+
+Ptable <- as.data.frame(Metadata)
+
+
+
+kable(Ptable, caption = "Movies with and without Jennifer Garner" ) %>% 
+  kable_styling("striped") %>%
+  pack_rows("Metascore", 1,2) %>% 
+  pack_rows("Rank", 3,4) %>% 
+  pack_rows("Rating", 5,6) %>%
+  pack_rows("Revenue", 7,8) %>% 
+  pack_rows("Runtime", 9,10) %>% 
+  pack_rows("Votes", 11,12) %>%
+  pack_rows("Year", 13,14)
+
+
+
+```
+
+
+## Part V: Running Linear Regression
+
+
+```{r}
+model1 <- lm(Revenue ~ Rating + Metascore, data=MoviesL)
+
+summ(model1)
+```
+**Are the estimates significant? Look at the signif. codes: reference in the output. Report, if the estimates have any “stars”. **
+ 
+  - Linear Model Equation: $\hat{y} = -92.79 + 26.3x_1 -0.041x_2$
+  
+    - The intersept has a significance falue of 0.001** and the Rating variable has a significance value of 0***
+
+  - **Adjusted R-squared** reflects the fit of the model, where a higher value generally indicates a better fit
+
+  - **Intercept coefficient** is the Y-intercept
+
+  - **Std. Error** reflects the level of accuracy of the coefficients
+
+
+
+
+
+```{r, warning=FALSE}
+
+plotly::plot_ly(data = MoviesL, 
+        z = ~Revenue, 
+        x = ~Metascore, 
+        y = ~Rating, 
+        color = ~JenniferGarner, 
+        colors = c('blue' ,'red'),opacity = 0.5) %>%
+  plotly::add_markers( marker = list(size = 3))
+
+```
+
+- Just for reference I wanted to plot the two variables independently to look at them again to make sure that my equation I created made sense as well as look at the residuals in the graph for fun. These will tell us the data points in relatinship to one of the variables, whereas before we had combined the variables to see the interactino between both Metascore and Rating compared to Revenue. This step was just for me to observe the variables and to better understand the datset I was working with 
+
+```{r}
+# getting the data right  11111
+MoviesL1 <- MoviesL %>% select(Rating, Revenue)
+
+# fit the model 
+fit <- lm(Revenue ~ Rating, data = MoviesL1, na.action = na.exclude)
+
+# find r from R^2 
+R21 <- signif(summary(lm(Revenue ~ Rating, data = MoviesL))$adj.r.squared)
+R1 <- round(sqrt(R21), digits = 3) 
+
+
+#obtain predicted and residual values 
+MoviesL1$predicted <- predict(fit)
+MoviesL1$residuals <- resid(fit)
+
+#create the plot 
+Graph1<-ggplot(MoviesL1, aes(x=Rating, y = Revenue))+
+  geom_segment(aes(xend= Rating, yend = predicted), alpha = .1)+
+  scale_y_continuous(labels = scales::comma)+
+  geom_point(aes(color = residuals), alpha = 1.0)+
+  scale_color_gradient2(low = "blue", mid = "lightgray", high = "red")+
+  guides(color = FALSE)+
+  ylab("Revenue")+
+  xlab("Rating")+
+  geom_point(aes(y=predicted), shape = 1, alpha = .5)+
+  theme_bw(base_size = 8)+
+  theme(plot.title = element_text(size = 8))+
+  geom_smooth(method = lm, color = "gray")+ 
+  ggtitle(paste(" R2 = ",signif(summary(lm(Revenue ~ Rating, data = MoviesL1))$r.squared, 5),
+                "\n R = ", R1,
+                "\n Intercept =",signif(lm(Revenue ~ Rating, data = MoviesL1)$coef[[1]],5 ),
+                "\n Slope =",signif(lm(Revenue ~ Rating, data = MoviesL1)$coef[[2]], 5)))+ 
+  annotate("text", x =2.2, y = 750, label = "italic(hat(y)) ", parse = TRUE, size = 3) +
+  annotate("text", x = 3.6, y = 750, label = "= -90.738 + 25.49x", size = 3) 
+
+```
+
+
+```{r}
+# getting the data right  11111
+MoviesL2 <- MoviesL %>% select(Metascore, Revenue)
+
+# fit the model 
+fit2 <- lm(Revenue ~ Metascore, data = MoviesL2, na.action = na.exclude)
+
+# find r from R^2 
+R31 <- signif(summary(lm(Revenue ~ Metascore, data = MoviesL2))$adj.r.squared)
+R1 <- round(sqrt(R31), digits = 3) 
+
+
+#obtain predicted and residual values 
+MoviesL2$predicted <- predict(fit)
+MoviesL2$residuals <- resid(fit)
+
+#create the plot 
+Graph2 <- ggplot(MoviesL2, aes(x=Metascore, y = Revenue))+
+  geom_segment(aes(xend= Metascore, yend = predicted), alpha = .1)+
+  scale_y_continuous(labels = scales::comma)+
+  geom_point(aes(color = residuals), alpha = 1.0)+
+  scale_color_gradient2(low = "blue", mid = "lightgray", high = "red")+
+  guides(color = FALSE)+
+  ylab("Revenue")+
+  xlab("Metascore")+
+  geom_point(aes(y=predicted), shape = 1, alpha = .5)+
+  theme_bw(base_size = 8)+
+  theme(plot.title = element_text(size = 8))+
+  geom_smooth(method = lm, color = "gray")+ 
+  ggtitle(paste(" R2 = ",signif(summary(lm(Revenue ~ Metascore, data = MoviesL2))$r.squared, 5),
+                "\n R = ", R1,
+                "\n Intercept =",signif(lm(Revenue ~ Metascore, data = MoviesL2)$coef[[1]],5 ),
+                "\n Slope =",signif(lm(Revenue ~ Metascore, data = MoviesL2)$coef[[2]], 5)))+ 
+  annotate("text", x =15, y = 750, label = "italic(hat(y)) ", parse = TRUE, size = 3) +
+  annotate("text", x = 32, y = 750, label = "= 32.26 + 0.87795x", size = 3) 
+  
+```
+
+
+```{r, warning=FALSE}
+ggarrange(Graph1, Graph2,
+          ncol = 2, 
+          nrow = 1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+                 
+
+AV1 <- 936.63
+AV2 <- 760.51
+AV3 <- 652.51
+AV4 <- 623.28
+AV5 <- 533.32
+
+PV1 <- -92.79 + 26.3*8.1 -0.041*81
+PV2 <- -92.79 + 26.3*7.8 -0.041*83
+PV3 <- -92.79 + 26.3*7.0 -0.041*59
+PV4 <- -92.79 + 26.3*8.1 -0.041*69
+PV5 <- -92.79 + 26.3*9.0 -0.041*82
+
+
+SEV1 <- (AV1-PV1)^2
+SEV2 <- (AV2-PV2)^2
+SEV3 <- (AV3-PV3)^2
+SEV4 <- (AV4-PV4)^2
+SEV5 <- (AV5-PV5)^2
+
+
+DT1 <- data.table(Movies = c("Star Wars: Episode VII - The Force Awakens", "Avatar", "Jurassic World", "The Avengers", "The Dark Knight"),
+                 "Actual Value" = c(AV1, AV2, AV3, AV4, AV5),
+                 "Predicted Value" = c(PV1, PV2, PV3, PV4, PV5),
+                 "Squared Error Vales" = c(SEV1, SEV2, SEV3, SEV4, SEV5))
+                 
+formattable(DT1, 
+            align = c("l","c", "c", "c", "c", "c" ),
+            list('Movies' = formatter(
+              "span" , style = ~style(color = "gray", font.weight = "bold" )),
+              'Squared Error Vales' = color_tile("#DeF7E9", "#71CA97")))
+
+
+```
+
+
+**What do you think about the predictions?**
+
+  - I personally do not think that the predictions are very accurate, this is because our equation is for the main group of movies and has a hard time looking at the extreems. When we only look at the top 5 most successful movies, our equation does not do to well as the linear model draws a line that best fits the whole data and these outliers do not fit this model. Therefore we see the greatest squared error value for the top movie "Starwars" and the least squared error value for "The Dark night". . 
+
+**Do you think the model is working well? Or, not so well?**
+
+  - I think that our model is not working very well right now since we are looking at the top 5 movies and basing our results on these variables. I think that this model is mainly towards less successful movies and would work very well. This is because, like I said above, the model draws the line and the equation that best fits all the values in the data and only looking at the top or bottom 5 movies, the outliers, would not be an accurate representation of our data. 
+
+
+## Part VI: Conclusion 
+
+There are various of variables that come into consideration when looking at a movies success or failure and with the dataset that we have, I think that we just do not have enough variables to consider the success or failure of Jennifer Garner's movies. Although the numeric datapoint are interesting, a further exploration into the budget and other actors would be worth while to give us a greater insight into the movies, their cast, and the budget to accuratly reflect a successful movie or not. Regardless I think that our predictive model can do a adequate job in predicting the revenue of movies based on the Metascore and Rating in mainstream movies. 
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
