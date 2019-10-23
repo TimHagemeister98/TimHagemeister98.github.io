@@ -1,0 +1,622 @@
+---
+title: "Project 4: Exploring probability"
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    code_folding: hide
+    theme: paper
+  
+---
+
+```{r setup, include=FALSE}
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(dplyr)                                                            #
+library(ggplot2)
+library(ggpubr)
+                                                                          # 
+theme_set(                                                                #
+  theme_tufte() +                                                         #
+  theme(text=element_text(family="sans")) +                               #
+  theme(axis.text.x = element_text(angle=-90))                            #
+  )                                                                       #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+***
+
+# Introduction
+In this lab, we’ll be investigating the important probability distributions we’ve studied so far in calss. As we’ve seen in lecture, the distributions are easy to use in R. But, deciding which distributions are appropriate is much more interesting.
+
+***
+
+## Tools and Distros
+  The distributions we’ll use for this lab are:
+
+- The Binomial Distribution
+- The Poisson Distribution
+- The Geometric Distribution
+- The Uniform Distribution
+- The Normal Distribution
+
+***
+
+## What do we need for each Distribution 
+
+**1) Binomial: **
+
+  - Only two possible outcomes: Success or fail
+  - Fixed number of trials, n, decided in advance
+  - The proibability of success is constant, i.e. never chances 
+  - Each trial must be independent
+  
+**2) Poisson: **
+
+  - Events happen at a constant average rate (Lambda) 
+  - All occurances are independnt of each other
+  - The chance of an event occuring is proportional tot he width of the interval (time or space) 
+  
+**3) Geometric: **
+
+  - Only two possible outcomes: Success or fail
+  - Fixed number of trials, n, decided in advance
+  - The proibability of success is constant, i.e. never chances 
+  - Each trial must be independent
+  - *Geometric variables have infinite support* 
+  
+**4) Uniform Distribution:**
+
+  - Infinite, uncountable outcomes 
+  - Probability is tha area under the curve 
+  - ranges from A to B
+
+**5) Normal Distribution: **
+
+  - Tails never touch, theres a proability all along the number line
+  - symmetric about the center, $\mu$, its mean/expected value 
+  
+***
+
+# Part 1:
+
+## Using The Distros
+
+This lab presents you with 5 scenarios, each with a question about the data. For each, you’ll need to adress the following:
+
+  1) Which distribution (if any!) can be used to answer the question.
+
+  2) A discussion of why the properties/requirements of the distribution are satisfied (for example, binomial RVs must satistfy four criteria described in Lec 13).
+
+  3) The expected value, variance, and standard deviation for the distro, and a brief explanation of what they mean. You might need to consult the book or the internet (like Wikipedia!) for this.
+
+  4) A plot of the distribution. 
+  
+  5) The probability in question. Here, you’ll use the appropriate pdf or cdf. Include a brief explanation of how you computed the probability and what it means.
+  
+  6) A discussion about whether the event in question is “unusual”. The expected value and variance should feature prominently in this discussion. You may use, as a rule of thumb, that observations which are more than two standard deviations away from the expected value are “unusual”. The graph of the distribution could also be a good reference…
+  
+  7) If the scenario doesn’t match any of the probability distributions we’ve learned (binomial, geometric, or poisson), then write a brief explanation of why not.
+
+***
+
+## The Scenarios
+
+In this section, your scenarios are described. You should structure your report accorgingly. For each scenario, write a paragraph that addresses the considerations listed above. As always, use clean formatting, tight grammar, and crisp technical writing.
+
+***
+
+1) A machine that produces a special type of transistor (a component of computers) has a 2% defective rate. The production is considered a random process where each transistor is independent of the others. You are performing quality control, and investigate the transistors made by the machine until you find a defective one. What’s the probability that you have to look at more than 20 transistors before you find the first defect?
+
+```{r, include = FALSE}
+dgeom(20, 0.02)
+```
+
+    - **Rational:** We know that this distribution has to be a geometric distribution, This is becasue there are 1) only two possible outcomes (defect or no defect), Fixed number of trials (20 transistors before we find the first defect), The probability of success is constant (98% sucess or 2% fail), Each trial is independent (true), and there is an infinite support (it could be that there is no failure at all). 
+
+    - **Method:** When running the Geometric distribution, we need to pick the number 20, this is because it will give us 20 good transistors with the $21st$ being a defective transistor. 
+    
+    - **Answer: **With this established, there is a 1.335% chance that the quality control officer will see $20th$ transistors that are good and see a defect on the $21st$ transistor. 
+    
+    - **Analysis**: 
+      - <u>Expected Value:</u> Since we are observing a Geometric distribution, to find the expected value we would have to use the equation $E[X] = (1-p)/p$. We observe that the following distribution has a expected value of: 49, since we used the equation $E[X] = (1-p)/p$, we are calculating the expected number of fails before the first sucess. This means that in the long run, the expected number of fails before the first success would be 49 
+      - <u>Variance:</u> To find the variance of a geomteric random variable we would use the equation $Var[X] = (1-p)/p^2$. We oberve that the following distribution has a variance of 2450. 
+      - <u>Standard Deviation:</u> To find the standard deviation we would need to find $\sigma$, to do this we will use the following formula $\sqrt(2450)$. After plugging in the information we have, we get a standard deviation of 49.50. This mean that our values will vary by 49.50 transistors untill we find a broke one. 
+
+      
+```{r, include = FALSE}
+(1-0.02)/0.02
+#?????????
+
+1/.02
+
+
+
+(1-0.02)/(0.02^2)
+
+## Variance
+(1/0.02)*((1/0.01)-1)
+## Standard Deviation
+sqrt((1/0.02)*((1/0.01)-1))
+
+70.356
+```
+      
+    
+```{r, include=FALSE}
+
+p = 0.02
+n = 20
+# exact
+dgeom(n, p)
+
+# simulated
+mean(rgeom(n = 10000, prob = p) == 20)
+#Exact: 0.3457
+#Simulated: 0.0133
+```
+
+```{r}
+data.frame(x = 1:20, prob = dgeom(1:20, p)) %>%
+  mutate(Failures = ifelse(x == n, n, "other")) %>%
+ggplot(aes(x = factor(x), y = prob, fill = Failures)) +
+  geom_col() +
+  geom_text(
+    aes(label = round(prob,5), y = prob + 0.0001),
+    position = position_dodge(0.9),
+    size = 4,
+    vjust = 0.4,
+    hjust = 1.5,
+    angle = 90
+    )+
+  theme_clean() +
+  labs(title = "Probability of X = 20 Failures Prior to First Success",
+       subtitle = "Geometric(.02)",
+       x = "Failures prior to first success (x)",
+       y = "Probability")
+```
+
+
+    
+
+***
+
+2) Heights of 10 year olds, regardless of gender, closely follow a normal distribution with mean 55 inches and standard deviation 6 inches. What is the probability that a randomly chosen 10 year old is between 60 and 65 inches?
+
+```{r, include = FALSE}
+pnorm(65, 55, 6)-pnorm(60, 55, 6)
+```
+
+    - **Rational:** Here we see that this is a normal distribution, This is because there is a infinite number of possibilites, although this does not seem reasonable (there will not be a 10 year old that is 200 inches) it could be possible. Since it says that there is a normal distribution in the height of all 10 year old, we will use a normal distribution function to find the probability. Since we want to find a range of the population we will subtract the larger value from the smaller value to find the area of the distribution between 60 and 65 inches. Since the values can reach infinatly close to 60 and 65, we will include these values in the calculations as well. 
+
+
+
+    - **Method: ** When using the normal distribution function we will be using the CDF as we want to find the area between 65 inches and 60 inches. With a Standard Deviation of 6, and a mean height of 55 inches, the format for all the 10 year olds that have a height under 65 inches will be: $pnorm(65, 55, 6)$. Furthermore we do not want all of the children under 65 inches but only till 60 inches, therefore we need to subtract the area under the distibution of all children under 60: $pnorm(65, 55, 6)$. After these conclusion we know that the final interpretation of the model will be: $pnorm(65, 55, 6)-pnorm(60, 55, 6)$. 
+
+    - **Answer:** Therefore we can tell that The probability that a randomyl chosen 10 year old is between 60 and 65 inches is 15.45% 
+    
+    - **Analysis**: 
+      - <u>Expected Value:</u> The expected value of a normal distribution is just the mean, which in our case is 55 Inches, and can be seen in our graph below. 
+      - <u>Variance:</u> The variance of the data is simply the standard deviation (6) squared, which would give us a variation of 36 within our dataset. 
+      - <u>Standard Deviation:</u> The standard deviation which was given to us in the problem is 6 Inches, this means that 10 year olds within 1 standard deviation should be between 49 and 61 inches tall, This would give you the middle 68.2 percentag of the population. 
+
+
+```{r}
+
+
+colors <- c(rep("#00CCCC",27), rep("#FF6666",6), rep("#00CCCC",13))
+
+
+n = 10000
+mean = 55
+sd = 6
+binwidth = 1 # passed to geom_histogram and stat_function
+set.seed(1)
+df <- data.frame(x = rnorm(n, mean, sd))
+
+ggplot(df, aes(x = x, mean = mean, sd = sd, binwidth = binwidth, n = n), color = group) +
+    geom_histogram(binwidth = binwidth, 
+        colour = "white", 
+        fill = colors, 
+        size = 0.1) +
+stat_function(fun = function(x) dnorm(x, mean = mean, sd = sd) * n * binwidth,
+        color = "darkred", size = 1)+
+  theme_clean() +
+  labs(title = "Normal Distribution for height of 10 year olds",
+       x = "Height in Inches",
+       y = "Probability")
+```
+
+***
+
+3) Occasionally an airline will lose a bag. An analysis of customer records at a particular airline reveals that, on average, 2.2 bags are lost each day. Assuming that this rate is constant, what’s the probability that the airline loses at least 7 bags in the next day?
+
+```{r, include=FALSE}
+1-ppois(7, 2.2)
+```
+
+    - **Rational:** We know that this distribution has to be a Poisson Distribution, this is because: 1) Events happen at a constant average rate, lambda (on average 2.2 bags are lost each day), 2) All occurances are independent of each other(Because one bag is lost, does not mean that all the bags are lost, this is why they are independent), 3) The chance of an event occuring is proportional to the width of the interval (The chance of the bag being lost are proportional the the day) 
+
+    - **Method:** Since we know it is a Poisson distribution, we will need to decide if we use the PDF or the CDF, Since we want to find the probability that *at least* 7 bags will be lost in the next day we need to find the probability of 7 bags being lost, therefore we will use the CDF. In addition we know that the average of bags being lost, $\lambda$, is equal to 2.2, therefore our equatino is: $ppois(7, 2.2)$. This however only gives us the probability of up to 7 bags being lost, this is the information that we do not want. Therefore we will subtract this value from 1, the total probability of bags being lost (as probability always has to add up to 1 or 100%). Therefore our final equation will be: $1- ppois(7, 2.2)$
+
+    - **Answer:** There will be a 0.20% chance that this airline will loose at least 7 pags in the next day. 
+    
+    - **Analysis**: 
+      - <u>Expected Value:</u> The expected value of our Poisson distribution is simply $\lambda$ which is equal to 2.2. This means that if we tracked the airline long enough, we would expect them to loose 2.2 bags a day. 
+      - <u>Variance:</u> The variance of the data is simply $\lambda$, in our case this would be 2.2. 
+      - <u>Standard Deviation:</u> The standard deviation of the Poisson distribution is the square root of our variance, Therefore our Standard Deviation is $\sqrt2.2$ which is 1.483. This means that we can expect 2.2 bags $+/-$ 1.483 to be lost on average a day.  
+
+```{r}
+options(scipen = 10000, digits = 5) # sig digits
+
+events <- 0:10
+density <-1-ppois(0:10, lambda = 2.2)
+prob <- 1-ppois(q = events, lambda = 2.2)
+df <- data.frame(events, density, prob)
+ggplot(df, aes(x = factor(events), y = density)) +
+  geom_col(fill = "#00CCCC") +
+  geom_text(
+    aes(label = round(density,5), y = density + 0.1),
+    position = position_dodge(0.9),
+    size = 4,
+    vjust = 1,
+    hjust = .5, 
+    angle = 45
+  ) +
+  labs(title = "Poisson Distribution of Airline",
+       subtitle = "P(7).",
+       x = "Luggage lost (x)",
+       y = "Density") +
+  geom_line(data = df, aes(x = events, y = prob))+
+  theme_clean()
+```
+
+
+***
+
+4) In a videogame, “Green” level prizes are special, rare rewards for defeating an enemy. The chance of obtaining green level prizes after defeating an enemy is 12% by default, but if you do get a green prize, the chance of obtaining another green item is cut in half for 5 minutes. If you defeat 20 enemies in the game, what’s the chance you’ll be rewarded with at least two green prizes?
+
+    - **Rational:** We first have to declare that this is not a viable distribution to calculate. Therefore we will find the error within the problem. There is only one area of the probelm that is viable for calculating the probability: There are a fixed number of trials (defeating 20 enemies in the game). However there are two main areas of concer: 
+      
+      1) The probability of success is not constant, There is a 12% chance of obtaining a green level prize after defeating an enemy (good so far), however the chance of obtaining another green item is cut in half for 5 minutes, (turning into 6%). This makes it so that the probability of success or of obtaining a prize is not constant. 
+      
+      2) Each trial is not independent, The chance of obtaining a prize is not independent as the chance of obtaining a prize within 5 minutes of the first one has a differnet probability of success. 
+      
+    - Therefore we can conclude that this is not a viable probability distribution that we have learned so far. 
+
+
+
+***
+
+5) In a board game, player actions are determined by a “spinner”, similar to the one shown below:
+Suppose the spinner in our game is labelled like a clock, with values ranging from zero (at the top) all the way around to 12 (at the top again). Any value in between is equally likely, and a scale is provided on the spinner to see. For example, it’s just as likely to get 4.52 as 2.145 as 10.9924. You need to spin a number bewtween 6 and 7 to win the game on this turn. What’s the probability that happens?
+
+```{r, include = FALSE}
+1*1/12
+```
+
+    - **Rational:** Since we see that there are an infinite number of possibilites but only a value between 6 and 7 will result in a win, we can conclude that this is a Uniform Distribution. The probability will be the area under the curve within a range from A(6) to B(7). We know that it can not be a Normal distibution as the outcomes are not symetrical about the center and dont have a mean or expected value. 
+
+    - **Method:** The height of the probability will be 1/12 since there are 12 outcomes since there are 12 sections of the spinner to land on. Therefore the **height = 12**. We are looking at the chance of the spinner landing between the number 6 and 7, since 7-6=1 we can conclude that the **Width = 1**. to find the area under a Uniform distribution is always rectangualr, all we need to do is multiple: $probability = area = (1)*(1/12)$ 
+
+
+    - **Answer** There is a 8.33% chance of the spinner landing between 6 and 7 to win the game.  
+    
+    - **Analysis**: 
+      - <u>Expected Value:</u> The expected value of a Uniform distribution uses the equation $E[X] = (1/2)(b+a)$, for our Uniform distribution, our expected value would be 10 (1/2*(6+7)).  
+      - <u>Variance:</u> The variance of our Uniform distribution would use the equation $Var[X]= (1/12)(b-a)^2$. For our Uniform distribution, our variance would therefore be 0.0833 ((1/12)*((7-6)^2))
+      - <u>Standard Deviation:</u> The standard deviation of the Uniform distribution is the square root of the variance, in this case it would be equal to $\sqrt0.0833$ which would be 0.288. This means that our values are $+/-$ 0.288 of 10. 
+      
+```{r, include = FALSE}
+.5*6+7
+
+(1/12)*((7-6)^2)
+
+sqrt((1/12)*((7-6)^2))
+```
+      
+```{r}
+
+
+X = seq(0, 12, .001)           
+Px = dunif(X, 6, 7)     
+
+daf <-as.data.frame(x = X, y= Px)
+
+
+ggplot(daf, aes(X, Px))+
+  geom_line()+
+  theme_clean()+
+  scale_x_discrete(limits = c("1","2","3","4","5","6","7","8","9","10","11","12"))+
+   labs(title = "Continuous probability of spinner",
+       subtitle = "P(12).",
+       x = "Number dial",
+       y = "Probability") 
+  
+
+
+
+```
+
+
+***
+
+6) Data collected by the Substance Abuse and Mental Health Services Administration (SAMSHA) suggests that 69.7% of 18-20 year olds consumed alcoholic beverages in any given year. We now consider a random sample of fifty 18-20 year olds. Would you be surprised if there were 45 or more people who have consumed alcoholic beverages?
+
+```{r, include=FALSE}
+pbinom(45, 50, .697) 
+```
+
+    - **Rational:** We know that this distribution has to be a binomial distribution, this is because 1) There are only two possible outcomes (consuming alcahol or not consuming alcahol), 2) There are a fixed number of trials decided in advance (we will be taking a random sample of 50 people), 3) The probability of consumption is constant (69.7% of all people between 18-20), 4) Each trial is independent (the chance of one person drinking is not related to another person drinking therefore they are independent)
+
+    - **Method:** Since we know that it will be a binomial we need to determine a few factors, The total number of trials, n, will be equal to 50. The number that we are looking for is 45, at least 45 people who have consumed alcahol (X>45). the probability of any person drinking in the dataset is 69.7%. 
+
+    - **Answer:** No, I would not be suprized since we we are looking at there being a 99.98% chance that at least 45 people have consumed alchoholic beverages. 
+    
+    - **Analysis**: 
+      - <u>Expected Value:</u> The expected value for binomials uses the equation $E[X] = n*p$, This would mean for our binomial distribution, the expected value would be 31.37, in the long run we would edxdpect 31.37 people to have consumed alcahol.   
+      - <u>Variance:</u> The variance for our binomial distribution, uses the equation $Var[X] = n*p*(1-p)$. For our Binomial this would mean that we have a variance of 9.5036
+      - <u>Standard Deviation:</u> The standard deviation of the binomial is the square root of the variance, in this case it would be equal to $\sqrt9.5036$ which would be 3.0828 This means that our values are $+/-$ 3.0828 of 31.37 
+    
+```{r, include=FALSE}
+## Expected Value
+45*.697
+## Variance 
+45*.697*(1-.697)
+## SD
+sqrt(9.5036)
+```
+    
+
+```{r}
+x <- seq(1,50)
+p=.697
+n=45
+data.frame(x = 1:50, prob = pbinom(x, 50 ,p)) %>%
+  mutate(Observed = ifelse(x <= n, n, "other")) %>%
+ggplot(aes(x = factor(x), y = prob, fill = Observed)) +
+  geom_col() +
+  geom_text(
+    aes(label = round(prob,4), y = prob + 0.001),
+    position = position_dodge(0.9),
+    size = 2.5,
+    vjust = 0,
+    angle=90
+    )+
+  labs(title = "Probability of Consumption of Alcahol",
+       subtitle = "pbinom(45)",
+       x = "number of individuals",
+       y = "Probability",
+       angle = 90)+
+  theme_clean(base_size = 10)
+
+
+x <- seq(1,50)
+y <- pbinom(x,50,0.697)
+
+
+
+```
+
+
+
+
+
+***
+
+# Part 2 
+
+## Dice Roll Distribution
+```{r}
+Dice1 <- replicate(5000, mean(sample(1:6, 1, replace=TRUE)))
+Dice2 <- replicate(5000, mean(sample(1:6, 2, replace=TRUE)))
+Dice3 <- replicate(5000, mean(sample(1:6, 10, replace=TRUE)))
+Dice4 <- replicate(5000, mean(sample(1:6, 30, replace=TRUE)))
+Dice5 <- replicate(5000, mean(sample(1:6, 5000, replace=TRUE)))
+
+DiceGraph1 <- ggplot() + 
+  geom_histogram(aes(Dice1), bins = 6, fill = "Red")+
+  theme_clean()
+
+DiceGraph2 <- ggplot() + 
+  geom_histogram(aes(Dice2), bins = 10, fill = "Blue")+
+  theme_clean()
+
+DiceGraph3 <- ggplot() + 
+  geom_histogram(aes(Dice3), bins = 15, fill = "darkgreen")+
+  theme_clean()
+
+DiceGraph4 <- ggplot() + 
+  geom_histogram(aes(Dice4), bins = 20, fill = "Orange")+
+  theme_clean()
+
+DiceGraph5 <- ggplot() + 
+  geom_histogram(aes(Dice5), bins = 50, fill = "Purple")+
+  theme_clean()
+
+
+
+DiceD <- ggplot()+
+  stat_density(aes(Dice1), alpha=.1, color = "red", bw = 0.5)+
+  stat_density(aes(Dice2), alpha=.1, color = "blue", bw = 0.3)+
+  stat_density(aes(Dice3), alpha=.1, color = "green", bw = 0.1)+
+  stat_density(aes(Dice4), alpha=.1, color = "orange", bw = 0.08)+
+  stat_density(aes(Dice5), alpha=.1, color = "purple", bw = 0.1)+
+  theme_clean()+
+  scale_x_discrete(limits = c("1","2","3","4","5","6"))+
+  coord_cartesian(xlim =c(1, 6))+
+  xlab("Dice Roll")
+ 
+
+Dicecomb <- ggarrange(DiceD, 
+                      ggarrange(DiceGraph1, DiceGraph2, DiceGraph3, DiceGraph4, DiceGraph5,  ncol = 3, nrow = 2, labels = c("A","B","C","D","E")),
+          ncol=1, 
+          nrow=2, 
+          heights = c(2.5, 4))
+
+annotate_figure(Dicecomb, bottom = text_grob("A = 1 (Red), B = 2 (Blue), C = 10 (Green), D = 30 (Orange), E = 5000 (Purple) ", 
+                                      size = 10))
+
+
+
+TestFail <- ggplot() + 
+    geom_histogram(aes(Dice1), binwidth = 1 ,fill = "red", alpha = 0.5) +
+    geom_histogram(aes(Dice2), binwidth = 1 ,fill = "blue", alpha = 0.5) +
+    geom_histogram(aes(Dice3), binwidth = 0.5 ,fill = "green", alpha = 0.5)+
+    geom_histogram(aes(Dice4), binwidth = 0.5 ,fill = "yellow", alpha = 0.5) +
+    geom_histogram(aes(Dice5), binwidth = 0.5 ,fill = "gray", alpha = 0.5) 
+
+
+  
+
+```
+
+**Observations:** We clearly see that with a *n* of 1, there is no real pattern, all that we see is a even distribution between all variables. As we move up even to a *n* of 2, we are starting to see a clear patter that is moving towards the expected value. Continuing to move up in n values to 10 and 30 we are starting to see a closer distribution that is even close to the expected value. Once we to a n value of 5000, we see that the histogram is equal to the expected value of the distribution as well as follows a normal distribution, unlike the graphs before this. This allows us to conclude that if we have a lot of observations, the tails get smaller as there will be less and less outliers, if you do not have many observations, we will have more outliers. 
+
+***
+
+## Sepal Length Distribution
+
+```{r}
+Sepal1 <- replicate(5000, mean(sample(iris$Sepal.Length, 1, replace=TRUE)))
+Sepal2 <- replicate(5000, mean(sample(iris$Sepal.Length, 2, replace=TRUE)))
+Sepal3 <- replicate(5000, mean(sample(iris$Sepal.Length, 10, replace=TRUE)))
+Sepal4 <- replicate(5000, mean(sample(iris$Sepal.Length, 30, replace=TRUE)))
+Sepal5 <- replicate(5000, mean(sample(iris$Sepal.Length, 5000, replace=TRUE)))
+
+
+SepalGraph1 <- ggplot() + 
+  geom_histogram(aes(Sepal1), bins = 25, fill = "red")+
+  theme_clean()
+
+SepalGraph2 <- ggplot() + 
+  geom_histogram(aes(Sepal2), bins = 20, fill = "blue")+
+  theme_clean()
+
+SepalGraph3 <- ggplot() + 
+  geom_histogram(aes(Sepal3), bins = 30, fill = "darkgreen")+
+  theme_clean()
+
+SepalGraph4 <- ggplot() + 
+  geom_histogram(aes(Sepal4), bins = 40, fill = "Orange")+
+  theme_clean()
+
+
+SepalGraph5 <- ggplot() + 
+  geom_histogram(aes(Sepal5), bins = 40, fill = "Purple")+
+  theme_clean()
+
+
+SepalD <- ggplot()+
+  stat_density(aes(Sepal1), alpha=.1, color = "red", bw = 0.5)+
+  stat_density(aes(Sepal2), alpha=.1, color = "blue", bw = 0.1)+
+  stat_density(aes(Sepal3), alpha=.1, color = "green", bw = 0.1)+
+  stat_density(aes(Sepal4), alpha=.1, color = "orange", bw = 0.1)+
+  stat_density(aes(Sepal5), alpha=.1, color = "purple", bw = 0.05)+
+  theme_clean()+
+  coord_cartesian(xlim =c(4, 8))+
+  xlab("Sepal Length")
+ 
+
+Sepalcomb <- ggarrange(SepalD, 
+                       ggarrange(SepalGraph1, SepalGraph2, SepalGraph3, SepalGraph4, SepalGraph5, ncol = 3, nrow=2, labels = c("A","B","C","D","E")),
+          ncol=1, 
+          nrow=2,
+          heights = c(2.5, 4))
+
+annotate_figure(Sepalcomb, bottom = text_grob("A = 1 (Red), B = 2 (Blue), C = 10 (Green), D = 30 (Orange), E = 5000 (Purple) ", 
+                                      size = 10))
+
+
+```
+
+**Observations:** We see that with a *n* value of 1, the mean values seem to be very close if not identical to the Poisson distribution given to us by Professor Miller. As we increase our *n* value to 2, we ar starting to see a more normal distribution that spans the whole range of values. However, when we increase our *n* value to 10 and 30 we can see that our distribution gets continuously stronger and stops spanning the whole range. When we finally increase our *n* value to 5000, we see that our histogram seems to be matching our mean value of the original dataset. As we saw above, we can conlcude that the more observations we have, the tails get smaller and outliers occur less often. Therefore, as our *n* value increases substantially, our histogram will get ever closer to the mean or the expected value of the Sepal Length in our dataset.  
+
+
+***
+
+## Poisson Distribution
+
+```{r}
+P1 <- replicate(5000, mean(rpois(1,3)))
+P2 <- replicate(5000, mean(rpois(2,3)))
+P3 <- replicate(5000, mean(rpois(10,3)))
+P4 <- replicate(5000, mean(rpois(30,3)))
+P5 <- replicate(5000, mean(rpois(5000,3)))
+
+PGraph1<- ggplot() + 
+  geom_histogram(aes(P1), bins = 10, fill = "red")+
+  theme_clean()
+
+PGraph2 <- ggplot() + 
+  geom_histogram(aes(P2), bins = 15, fill = "Blue")+
+  theme_clean()
+
+PGraph3 <- ggplot() + 
+  geom_histogram(aes(P3), bins = 20, fill = "darkgreen")+
+  theme_clean()
+
+PGraph4 <- ggplot() + 
+  geom_histogram(aes(P4), bins = 25, fill = "Orange")+
+  theme_clean()
+
+PGraph5 <- ggplot() + 
+  geom_histogram(aes(P5), bins = 50, fill = "purple")+
+  theme_clean()
+
+
+
+
+PD <- ggplot()+
+  stat_density(aes(P1), alpha=.1, color = "red", bw = 1)+
+  stat_density(aes(P2), alpha=.1, color = "blue", bw = 0.5)+
+  stat_density(aes(P3), alpha=.1, color = "green", bw = 0.5)+
+  stat_density(aes(P4), alpha=.1, color = "orange", bw = 0.25)+
+  stat_density(aes(P5), alpha=.1, color = "purple", bw = 0.1)+
+  theme_clean()+
+  coord_cartesian(xlim =c(0, 12))+
+  xlab("Poisson")
+ 
+
+pcomb <- ggarrange(PD, 
+              ggarrange(PGraph1, PGraph2, PGraph3, PGraph4, PGraph5, ncol = 3, nrow = 2, labels = c("A","B","C","D","E")),
+          ncol=1, 
+          nrow=2, 
+          heights = c(2.5, 4))
+
+annotate_figure(pcomb, bottom = text_grob("A = 1 (Red), B = 2 (Blue), C = 10 (Green), D = 30 (Orange), E = 5000 (Purple) ", 
+                                      size = 10))
+
+
+```
+
+**Observations:** Just like before, with a *n* value of just 1, we see a normal distribution, with a light skew to the right, as we continue to increase *n* value to 2, we are starting to see less and less outliers and the skew starts to disipate. As we increase our *n* value to 10 and 30, we are starting to see less variation within the dataset and a peak value that is closer to the true mean of the distribution. When we increase our *n* value all the way up to 5000, we see that the histogram variance shrinks down and gets closer to 3, or lambda in this case. As we saw previously, we can conclude that the more observations we have, the tails get smaller and outliers occur less often. Therefore, as our *n* value increases substantially, our histogram will get ever closer to the mean or the expected value of the poisson distribution with a lambda of 3. In addition as *n* increases, the graph becomes closer to a normal distribution, which is in concurrance with the Central Limit Theorem.   
+
+***
+
+
+## Part 2: Conclusion 
+
+Throughout part two, we see a interesting pattern that is called the central limit theorem (CLM) In the study of probability, the CLM states that the distribution of sample means appromiates a normal distribution ("bell curve"), as the sample size becomes larger, assuming that all the sample are identical in size regarldess of the population distribution. This becomes very evident in our first problem, the dice example, in which the first distribution looked like a rectangle and the final distribution looked like a normal distribution. This is evident in all of the examples above. Given a sufficently large sample size from a population with a finite level of variance, the mean of all samples form the given population will be approximatly eqaul to the mean or expected value of the popualtion. The key aspect of this, and why statistical analysis works, is that a sufficiently large sample size can predict the characteristics of a population accurately. 
+
+
+
+
