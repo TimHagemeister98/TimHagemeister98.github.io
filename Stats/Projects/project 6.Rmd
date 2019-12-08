@@ -1,0 +1,452 @@
+---
+title: 'Project 6: Show of Hands Analysis'
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(dplyr)                                                            #
+library(ggplot2)                                                          #
+library(ggpubr)                                                           #
+                                                                          # 
+theme_set(                                                                #
+  theme_tufte() +                                                         #
+  theme(text=element_text(family="sans")) +                               #
+  theme(axis.text.x = element_text(angle=-90))                            #
+  )                                                                       #
+                                                                          #
+                                                                          #
+                                                                          #
+PolData <- read.csv("political-data.csv")                                 #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+
+
+# The Data
+
+The dataset for this lab (download here) contains the responses from 3,906 American users of the “Show of Hands” app for iPhone and Android. On the app, users answer questions about a variety of socioeconomic questions ranging from gender, income, and political party to more esoteric questions like “Does life have a purpose?” or “Are you left-handed?”.
+
+# The Lab
+
+In this lab, we’ll be using all we know about inference to study political party affiliation of users of the Show of Hands app. You might find it helpful to refer to your code from Lab 5; there are similarities here. For all inference tools used (i.e., hyp tests and CIs), be sure to include full discussion of the process, detailed interpretation of the results, and any concerns about the validity of the conclusion one might have. Use this lab as an opportunity to demonstrate your understanding of hyp tests and CIs in a practical setting.
+We’ll consider this dataset to be a sample of the larger population of Show of Hands users. Your job will to be to write up a polished analysis (with intro and conclusion) that addresses the following issues:
+
+## Part 1: The Whole Sample
+
+What can you say about the political party for the entire dataset? What are the sample proportions for Democrats and Republicans; which party is in the majority in this sample?
+
+Use a hypothesis test to see if there’s statistically significant evidence that a higher proportion of users belong to the majority party (i.e., greater than 50%). Carefully explain all steps, and the implications of your conclusion. What conditions are required for the sample in order to perform such a hypothesis test; are these conditions met by your sample?
+
+Also, construct and interpret a confidence interval for the proportion of users that belong to the majority party. Does this CI agree with the results of your test? Why or why not? What is the margin of error for that confidence interval? How large would our sample have needed to be in order to get estmate the proportion to within 1% (i.e., MOE of 1%?)
+
+### Analysis 
+
+
+
+```{r, include = FALSE}
+summary(PolData$Party) 
+2081+1825
+2081/(2081+1825)
+```
+
+Within the whole dataset there are a total of 2,081 Democrats and 1,825 Republicans. This amkes the majority of the people Democrats with a ratio of 1.14:1 Democrats to Republicans. Another way to phrase this is that in the whole sample that we have, 53.28% of them are Democrats
+
+#### Running a Hypothesis test: 
+  
+  1) Hypothesis: We are running a hypothesis test to see if there seems to be a majority party 
+      - H0: p = .50 
+      
+      - Ha: p > .50 
+      
+  2) Test Statistic 
+      - Using the following formula (zscore = ($\hat{p}$---p)/$\sqrt{p(1-p)/n}$) we are able to find the z-score which will give us a understanding of the actual population of democrats compared to the norm. 
+    
+```{r, include = FALSE}
+## Republicans 
+((1825/3906)- .50) / (sqrt(.50*(1-.50)/3906))
+
+## Democrats 
+((2081/3906)- .50) / (sqrt(.50*(1-.50)/3906))
+```
+  
+  3) P - Value
+      - We get a P-Value of 2.100561e-05 which concludes that we did not find evidence against H0. The sample results seem very unlikely under Ha. This means that the chance of our results happening my random is significantly small. We reject H0. The democrats have a higher proportion of users that belong to their party. 
+
+```{r, include = FALSE}
+1 - pnorm(4.096131)
+```
+
+#### Confidance Interval for our popoulation: 
+
+
+
+```{r}
+propd <- sum(PolData$Party == "Democrat")/nrow(PolData)
+phatd <-sum(PolData$Party == "Democrat")/3906
+
+
+
+## Democrat 
+lower50d <- phatd - 0.67449*sqrt(phatd*(1-phatd)/3906)
+upper50d <- phatd + 0.67449*sqrt(phatd*(1-phatd)/3906)
+lower95d <- phatd - 1.96*sqrt(phatd*(1-phatd)/3906)
+upper95d <- phatd + 1.96*sqrt(phatd*(1-phatd)/3906)
+lower99d <- phatd - 2.576*sqrt(phatd*(1-phatd)/3906)
+upper99d <- phatd + 2.576*sqrt(phatd*(1-phatd)/3906)
+
+
+CI50d <- c("Democrat 50% CI", round(lower50d,3), round(upper50d,3), round(propd, 3))
+CI95d <- c("Democrat 95% CI", round(lower95d,3), round(upper95d,3), round(propd, 3))
+CI99d <- c("Democrat 99% CI", round(lower99d,3), round(upper99d,3), round(propd, 3))
+
+```
+
+
+```{r, include = FALSE}
+levelCI <- t(cbind(CI50d , CI95d , CI99d))
+
+levelCI <- as.data.frame(levelCI)
+col_headings <- c("Confidance Interval","CI lower", "CI upper", "True Population Proportion")
+names(levelCI) <- col_headings
+
+table1 <- ggtexttable(levelCI, rows = NULL, 
+                        theme = ttheme("mGreen"))
+```
+
+
+```{r, include = FALSE}
+chart1 <- ggplot()+
+  geom_line(aes(x = c(lower50d ,upper50d), y = "Democrat 50% CI"), color = "Blue")+
+  geom_line(aes(x = c(lower95d ,upper95d), y = "Democrat 95% CI"), color = "Blue")+
+  geom_line(aes(x = c(lower99d ,upper99d), y = "Democrat 99% CI"), color = "Blue")+
+  geom_point(aes(x = propd, y= "Democrat 50% CI"), color = "red", size = 5)+
+  geom_point(aes(x = propd, y= "Democrat 95% CI"), color = "red", size = 5)+
+  geom_point(aes(x = propd, y= "Democrat 99% CI"), color = "red", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab(" ")+
+  theme_minimal()
+
+```
+
+
+```{r}
+ggarrange(chart1,table1, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("Show of Hands (Democrats)")
+```
+
+```{r, include = FALSE}
+.53*(1-.53)*(1.96/.01)^2
+```
+
+**What does this tell us ?** 
+
+We constructed a Confidence Interval for the proportion of users that belong to the majority group, the CI agrees with the result of our test. It shows that the confidance for the set of data of democrats, is 95% confident that it will be in the majority. This gives us a good idea of our sample and how it is spread out. 
+
+
+
+**How large would our sample have needed to be in order to get the estimate proportion to within 1%.**
+
+Since MOE = zstar x sqrt(p(1-p)/n), we can find n using the following equation to find out sampel zise needed to have a margin of error of 1% $n = p(1-p)*(zstar/MOE)^2$
+    - We would need a sample size of **9,570** people for us to have a Margin of Error of 1% and a Confidance Interval of 95% 
+
+
+
+
+## Part 2: Educational Subgroup Analysis
+
+Now, pick two educational groups that you’d like to compare. What are the majority parties in those two groups? For each group, use CIs to estimate the proportion who belong to the majority party. What conclusions do you make about the two groups based on these estimates?
+
+Conduct a 2-sample Z test for proportions to investigate evidence for a difference between the two groups. Carefully explain all steps and conclusions.
+
+Explain carefully what Type I and Type II errors would mean in this case. Which one is worse, do you think? Ceratinly, you could argue either way here: your reasoning is the important part, not which error you think is worse. Based on your reasoning, what adjustments might you make to the hyp test?
+
+Construct a CI to estimate the difference in proportion of party affiliation between the two groups. Discuss the conclusion, the connection to the hyp test above, and the margin of error.
+
+****
+
+We will be comparing Current Undergraduate students and High School Students Democratic Affiliation, I think that this is a reasonable comparison as we as current undergraduates went trough this transition and think differenetly now that we are in college. I hope to see a difference in these results. 
+
+```{r, include = FALSE}
+HighSchool <- PolData %>% filter(EducationLevel == "High School Diploma" )
+CurrentUndergraduate <- PolData %>% filter(EducationLevel == "Current Undergraduate" )
+
+prop_HighSchool <- sum(HighSchool == "Democrat")/nrow(HighSchool)
+prop_CurrentUndergraduate <- sum(CurrentUndergraduate == "Democrat")/nrow(CurrentUndergraduate)
+
+phat_HighSchool <-sum(HighSchool == "Democrat")/nrow(HighSchool)
+phat_CurrentUndergraduate <-sum(CurrentUndergraduate == "Democrat")/nrow(CurrentUndergraduate)
+
+```
+
+```{r, include = FALSE}
+
+## Highschool 
+###lower50
+lower50HighSchool <- phat_HighSchool - 0.67449*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+##upper50 
+upper50HighSchool <- phat_HighSchool + 0.67449*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+###lower95
+lower95HighSchool <- phat_HighSchool - 1.96*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+###upper95
+upper95HighSchool <- phat_HighSchool + 1.96*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+###lower99
+lower99HighSchool <- phat_HighSchool - 2.576*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+##upper99 
+upper99HighSchool <- phat_HighSchool + 2.576*sqrt(phat_HighSchool*(1-phat_HighSchool)/589)
+
+HighSchoolCI50 <- c("High School 50%", round(lower50HighSchool,3), round(upper50HighSchool,3), round(prop_HighSchool, 3))
+
+HighSchoolCI95 <- c("High School 95%", round(lower95HighSchool,3), round(upper95HighSchool,3), round(prop_HighSchool, 3))
+
+HighSchoolCI99 <- c("High School 99%", round(lower99HighSchool,3), round(upper99HighSchool,3), round(prop_HighSchool, 3))
+
+```
+
+```{r, include = FALSE}
+
+## prop_CurrentUndergraduate
+###lower50
+lower50Undergraduate <- phat_CurrentUndergraduate - 0.67449*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+##upper50
+upper50Undergraduate <- phat_CurrentUndergraduate + 0.67449*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+###lower95
+lower95Undergraduate <- phat_CurrentUndergraduate - 1.96*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+###upper95
+upper95Undergraduate <- phat_CurrentUndergraduate + 1.96*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+###lower99
+lower99Undergraduate <- phat_CurrentUndergraduate - 2.576*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+##upper99 
+upper99Undergraduate <- phat_CurrentUndergraduate + 2.576*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/618)
+
+CurrentUndergraduateCI50 <- c("Current Undergraduate 50%", round(lower50Undergraduate,3) , round(upper50Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+CurrentUndergraduateCI95 <- c("Current Undergraduate 95%", round(lower95Undergraduate,3),round(upper95Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+CurrentUndergraduateCI99 <- c("Current Undergraduate 99%", round(lower99Undergraduate,3) , round(upper99Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+```
+
+
+```{r, include = FALSE}
+levelCI <- t(cbind(HighSchoolCI50,HighSchoolCI95,HighSchoolCI99, CurrentUndergraduateCI50, CurrentUndergraduateCI95, CurrentUndergraduateCI99))
+
+levelCI <- as.data.frame(levelCI)
+col_headings <- c("Education Level","CI lower", "CI upper", "True Population Proportion")
+names(levelCI) <- col_headings
+
+table2 <- ggtexttable(levelCI, rows = NULL, 
+                        theme = ttheme("mBlue"))
+
+
+```
+
+```{r, include = FALSE}
+chart2 <- ggplot()+
+  geom_line(aes(x = c(lower50HighSchool ,upper50HighSchool), y = "HighSchool 50% CI"), color = "Blue")+
+  geom_line(aes(x = c(lower95HighSchool ,upper95HighSchool), y = "HighSchool 95% CI"), color = "Blue")+
+  geom_line(aes(x = c(lower99HighSchool	,upper99HighSchool), y = "HighSchool 99% CI"), color = "Blue")+
+  geom_line(aes(x = c(lower95Undergraduate ,upper95Undergraduate), y = "Undergraduate 95% CI"), color = "Red")+
+  geom_line(aes(x = c(lower50Undergraduate ,upper50Undergraduate), y = "Undergraduate 50% CI"), color = "Red")+
+  geom_line(aes(x = c(lower99Undergraduate	,upper99Undergraduate), y = "Undergraduate 99% CI"), color = "Red")+
+  geom_point(aes(x = prop_HighSchool, y= "HighSchool 50% CI"), color = "red", size = 5)+
+  geom_point(aes(x = prop_HighSchool, y= "HighSchool 95% CI"), color = "red", size = 5)+
+  geom_point(aes(x = prop_HighSchool, y= "HighSchool 99% CI"), color = "red", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Undergraduate 50% CI"), color = "Blue", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Undergraduate 95% CI"), color = "Blue", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Undergraduate 99% CI"), color = "Blue", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab("Confidance Interval")+
+  theme_minimal()
+
+```
+
+
+```{r}
+ggarrange(chart2,table2, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("Show of Hands High School vs. Undergraduate (Democrats)")
+```
+
+
+```{r, include = FALSE}
+summary(HighSchool$Party) 
+ # Democrat = 293
+ # Republican  =  296 
+ # Total = 589
+
+summary(CurrentUndergraduate$Party)
+ # Democrat = 339
+ # Republican  =  279 
+ # Total = 618
+
+## Highschool Republicans 
+HSR <- ((296/589)- .50) / (sqrt(.50*(1-.50)/589))
+
+## HighSchool Democrats 
+HSD <- ((293/589)- .50) / (sqrt(.50*(1-.50)/589))
+
+## Undergrduate Republicans 
+UR <- ((279/618)- .50) / (sqrt(.50*(1-.50)/618))
+
+## Undergrduate Democrats 
+UD <- ((339/618)- .50) / (sqrt(.50*(1-.50)/618))
+
+```
+
+
+**What does this tell us** 
+
+Based on this information we can conlcude if the majority party of the two groups. For Highschoolers, we are unable to say which one is in the majority as the 95% CI is right aorund the 50% line. However for Undergrduates, we are able to estimate with a fair amount of proof Democrats are in the majority. 
+
+
+### Confidance Interval Between Educational Groups Democratic Affiliation 
+
+```{r, include = FALSE}
+#HS Democrats
+phat1 <-  293/589 
+#UG Democrats
+phat2 <- 339/618 
+
+n1 <- 589 
+n2 <- 618
+
+#Upper 
+(phat1 - phat2) + 1.96 * sqrt((phat1*(1-phat1)/n1) + (phat2*(1-phat2)/n2))
+#Lower
+(phat1 - phat2) - 1.96 * sqrt((phat1*(1-phat1)/n1) + (phat2*(1-phat2)/n2))
+```
+
+From these results we are able to conlcude that there is a difference in proportions as the values range from **-10.74%** and **0.05%**. Another way to look at it would be: 10% < (population of Highschool Democrats) - (Popuilation of Undergraduate Democrats) < 0.5%.  
+
+
+This means that it is  possible that P1-P2 = 0. This means that it is posisble that there is no difference that the proportions are the same (P1-P2 = 0!). We didnt find strong evidence of a difference between High school and Current Undergraduate democrats.  
+
+
+### Hypothesis test Between Educational Groups Democratic Affiliation 
+
+1) Hypothesis: During this test, we are able to compare two different groups and see if they proove to be in a majority or not. 
+
+- H0: p1 - p2 = 0 (assume no difference) 
+
+- Ha: p1 $\ne$ p2 
+
+
+```{r,include=FALSE}
+#HS Democrats
+phat1 <-  293/589 
+#UG Democrats
+phat2 <- 339/618 
+
+#n for HS 
+n1 <- 589 
+#n for UG 
+n2 <- 618
+
+#phat pooled 
+phat_pooled <- (293+339) / (589+618)
+
+z <- (phat1-phat2) / sqrt(phat_pooled*((1-phat_pooled)/n1) + phat_pooled*((1-phat_pooled)/n2))
+z
+pnorm(z)*2
+
+
+# Do we multiply this by two? 
+```
+ 
+ 
+ 2) Test Statistic 
+      Using the following formula $$(zscore = (\hat{p1}-\hat{p2}) / \sqrt{\hat{pooled}((1-\hat{pooled})/n1)+\hat{pooled}((1-\hat{pooled})/n2)})$$  we are able to find the z-score which will give us a understanding of the actual population of democrats.
+      
+  
+  3) P - Value
+      - We get a p value of 0.07565932. This is not a significant difference and therefore we fail to reject H0. However it is close to being significant, although this does not alter our conclusion of failing to reject H0, it is an interesting observation. 
+
+    
+**In conclusion I can conclude that I did not see a difference between democratic affiliation between High schoolers and Current Undergraduates which proves my hypothesis. **
+  
+
+
+### Types of error 
+
+- Type 1 error would be that we say that they are different when in reality they are not different 
+
+- Type 2 error would be that we say that they are not different when in reality they are different 
+
+- In my opinion, I think that type 1 error would be worse, this is becasue i think saying there is a difference might put a wedge into these different groups when a type 1 error might bring different groups closer together if they think that they are not different. We want a smaller Alpha and a bigger beta. 
+
+
+## Checking Conditions.
+
+Before we conduct these tests or construct intervals, we always need to check: are we justified in using a normal dist?
+
+np > 10 and n(1-p)> 10
+
+**After running the different test, we can conclude that these conditions are justified in using a normal distribution.**
+
+
+```{r, inlcude = FALSE}
+
+#HS Democrats
+phat1 <-  293/589 
+#UG Democrats
+phat2 <- 339/618 
+
+#n for HS 
+n1 <- 589 
+#n for UG 
+n2 <- 618
+
+```
+
+```{r, include=FALSE}
+
+n <-  293
+p <-  293/589
+  
+n*p 
+n*(1-p)
+
+
+n <-  339
+p <-  339/589
+  
+n*p 
+n*(1-p)
+
+
+
+
+
+```
+
+## Limitations
+
+There are some limitations to our data however. Since this data is self reported, we need to take into considerration that not everyone wants to publicly register their affiliation on a app. We should always be cautuous about conclusions about our data. 
+
+
+
+

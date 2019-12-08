@@ -1,0 +1,323 @@
+---
+title: 'Project 7: MPG of cars'
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(pastecs)
+library(psych)
+library(stargazer)
+library(formattable)
+library(expss)
+library(GGally)
+library(gridExtra)
+library(grid)
+library(ggpubr)
+library(knitr)
+library(kableExtra)
+library(ggthemes)
+library(data.table)
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+library(corrplot) 
+library(PerformanceAnalytics)  
+library(compareDF)
+library(jtools)
+library(data.table)                                                           #
+                                                                          # 
+theme_set(                                                                #
+  theme_tufte() +                                                         #
+  theme(text=element_text(family="sans")) +                               #
+  theme(axis.text.x = element_text(angle=-90))                            #
+  )                                                                       #
+                                                                          #
+                                                                          #
+                                                                          #                                                                                                      #
+Movies <- read.csv("imdb_data.csv") 
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+
+## Introduction 
+
+Using any dataset from the course (but not one of the built-in datasets in R), compare means of a variable for two groups using both a 2-sample t test and a 2-sample t confidence interval.
+
+
+- Picking an interesting comparison, and explaining why you picked it.
+
+- Performing a complete hyp test for two means and explaining all relevant details (conditions for use, steps involved, interpretations, and conclusions).
+
+- Constructing a CI for two means and explaining all relevant details.
+
+- Your conclusions from your analysis.
+
+- A thoughtful demonstration of these two tools, what they mean, how they’re used, and why we use them.
+Your report should be a cleanly formatted technical essay, with introduction and conclusion. Be creative, have fun, and use these statistical tools to tell a good story!
+
+## The Data 
+
+IMDb (Internet Movie Database) is an online database of information related to films, television programs, home videos, video games, and streaming content online – including cast, production crew and personal biographies, plot summaries, trivia, fan and critical reviews, and ratings. An additional fan feature, message boards, was abandoned in February 2017. Originally a fan-operated website, the database is owned and operated by IMDb.com, Inc., a subsidiary of Amazon. As of May 2019, IMDb has approximately 6 million titles (including episodes) and 9.9 million personalities in its database, as well as 83 million registered users. IMDb began as a movie database on the Usenet group “rec.arts.movies” in 1990, and moved to the web in 1993.(IMDB.com)
+
+The reason I picked The IMDb dataet is because I love movies, however there are so many different types of movie genres out there, I hope to compare at least two genres to see if there is a difference within them on the different variables given in the datset. This dataset provides information on 1000 movies, information on which was collected from the International Movie Database (IMDB). 
+
+```{r, warning=FALSE}
+
+MoviesL<- setnames(Movies, old=c("Rank", 
+                          "Title",
+                          "Genre",
+                          "Description",
+                          "Director", 
+                          "Actors", 
+                          "Year",
+                          "Runtime..Minutes.",
+                          "Rating", 
+                          "Votes", 
+                          "Revenue..Millions.", 
+                          "Metascore"),
+                    new=c("Rank", 
+                          "Title",
+                          "Genre",
+                          "Description",
+                          "Director", 
+                          "Actors", 
+                          "Year",
+                          "Runtime",
+                          "Rating", 
+                          "Votes", 
+                          "Revenue", 
+                          "Metascore"))
+```
+
+
+
+
+```{r, include=FALSE}
+
+Comedy1 <- MoviesL %>% 
+  select(Genre, Revenue) %>% 
+  filter(str_detect(str_to_lower(Genre), "comedy"))
+
+Comedy <- na.omit(Comedy1) 
+
+Action1 <- MoviesL %>% 
+  select(Genre, Revenue) %>% 
+  filter(str_detect(str_to_lower(Genre), "action"))
+
+Action <- na.omit(Action1) 
+
+mean(Comedy$Revenue)
+mean(Action$Revenue)
+
+sd(Comedy$Revenue)
+sd(Action$Revenue)
+
+nrow(Comedy)
+nrow(Action)
+
+```
+
+### Statistical overview
+
+```{r, warning=FALSE}
+C <- Comedy
+
+C %>% 
+    tab_cells(Revenue) %>%
+    tab_cols(total(label = "Comedy Movies")) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>% 
+    htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 120px", ncol(.) - 1)))
+
+A <- Action
+
+A %>% 
+    tab_cells(Revenue) %>%
+    tab_cols(total(label = "Action Movies")) %>% 
+    tab_stat_fun("Mean" = w_mean, 
+                 "S.D." = w_sd, 
+                 "min" = w_min, 
+                 "max" = w_max,
+                 "Var." = w_var, 
+                 "median" = w_median,
+                  method = list) %>%
+    tab_pivot() %>% 
+    htmlTable(., css.cell = c("width: 100px", 
+                              rep("width: 120px", ncol(.) - 1)))
+```
+
+## Hypothesis test 
+
+I want to set out to see if there is a statistical significant difference between the revenue that Comedy movies make compares to the revenue that Action movies make. The vast difference within these genres makes me beleive that there will be a difference. To test this, as stated below, our null hypothesis ill be (H0: mu1 - mu2 = 0) and our alternate hypothesis will be (Ha: mu1 - mu2 $\ne$ 0)
+
+
+- H0: mu1 - mu2 = 0 
+
+- Ha: mu1 - mu2 $\ne$ 0 
+
+#### Test statistics: 
+
+Once we find the mean revenue of both of the genres, we are able to plug these number into the following equation $(xbar1 - xbar2)/ \sqrt{(sd1^2/n1+sd2^2/n2)}$. This will give us a value that we will then be able to plug into the pt function in r studio to recieve a p value. 
+
+```{r, include = FALSE}
+## Comedy 
+xbar1 = 75.75078 
+s1 = 85.80
+n1 = 255 
+
+## Action 
+xbar2 = 124.4945 
+s2 = 130.98 
+n2 = 286
+
+
+(xbar1 - xbar2)/ sqrt(s1^2/n1+s2^2/n2)
+
+```
+
+
+After our first equation test, we got a value of -5.171055. With this value in mind we are able to plug this into the pt function to get our p value, since we are doing a two tail test, we need to multiply the value by two as we have two sides of the distribution.  
+
+
+#### P- Value: 
+
+```{r, include = FALSE}
+pt(-5.171057, 255)*2
+```
+
+We have a pvalue of 4.709 e-07. This means that we reject our null hypothesis and that the movie genres actually have a different amount of revenue. This might be due to the fact that comedy is a much smaller niche of movies that is not accepted by everyone equally whereas Action movies are accepted more generally. 
+
+
+## Confidance Interval 
+
+
+```{r, include=FALSE}
+## Comedy
+
+xbar1 = 75.75078 
+s1 = 85.80
+n1 = 255 
+
+
+qt(.025, 255-1)
+
+
+75.75078-  1.969348*85.80/sqrt(255)
+75.75078+  1.969348*85.80/sqrt(255)
+
+```
+
+
+
+```{r, include = FALSE}
+## Action
+
+## Action 
+xbar2 = 124.4945 
+s2 = 130.98 
+n2 = 286
+
+
+qt(.025, 286-1)
+
+
+124.4945-  1.969348*130.98/sqrt(286)
+124.4945+  1.969348*130.98/sqrt(286)
+
+```
+
+To examine the confidance intervals of our data, we will be using a 95% Confidance Interval for our examination. This means that we are 95% Confident that the true value of all Comedy and Action Movies are within this range. In addition, if these Confidence Intervals do not overlap, it is more proof that we can say that there is a statistical significant difference between the two groups. 
+
+```{r}
+
+ComedyCI <- c("Comedy 95%", 65.17,86.33)
+ActionCI <- c("Action 95%", 109.24,139.75)
+
+
+levelCI <- t(cbind(ComedyCI,ActionCI))
+
+levelCI <- as.data.frame(levelCI)
+col_headings <- c("Genre","95% CI lower", "95% CI upper")
+names(levelCI) <- col_headings
+
+table <- ggtexttable(levelCI, rows = NULL, 
+                        theme = ttheme("mBlue"))
+```
+
+
+```{r}
+chart <- ggplot()+
+  geom_line(aes(x = c(109.24 ,139.74), y = "Action 95% CI"), color = "Blue")+
+  geom_line(aes(x = c(65.16 ,86.3321), y = "Comedy 95% CI"), color = "Blue")+
+  geom_point(aes(x = 123, y= "Action 95% CI"), color = "red", size = 5)+
+  geom_point(aes(x = 75.75, y= "Comedy 95% CI"), color = "red", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab(" ")+
+  theme_minimal()
+
+```
+
+```{r}
+ggarrange(chart,table, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("IMDB Movie Genre Revenue")
+```
+
+
+## Conclusion 
+
+
+For our IMBD Dataset we set out to see if there was a difference between revenue between Comedy and Action movies. I set out to explore this as I love both of these genres but the movies are each very different. I sorted the data according to movies that either have comedy or action in their official genre list. Both of these variables have similar sample size with Comedy having 255 data points and action having 286 data point. We completed a two tail hypothesis test to detemine the possibility of a difference in revenue. We can conclude that the revenue of comedy and action movies are significantly different as our p value is below 5% (.05). In addition we constructed a 95% CI in which we can conclude that 95% of all comedy or action movies are within, this will allow us to see visually the difference between the two variables. We see that these ranges are quite far away from each other. I hypothesise that this is because comedy movies do not reach a lot of people as comedy is hard to please everyone. However, action movies have a greater audience and are able to reach more people. I think that it is still quite suprizing how great the difference between the two categories truely are. For further analysis, I think that it would be interesting to compare all the genres within the dataset. 
+
+
+
+
+
+*Dataset recieved from Professor Caliskan, Data Analytics, Denison University
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

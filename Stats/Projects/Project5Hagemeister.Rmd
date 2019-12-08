@@ -1,0 +1,445 @@
+---
+title: 'Project 5: Show of Hands'
+author: "Tim Hagemeister"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+###########################################################################
+################# DON'T DELETE THIS PART!!!!!##############################
+###########################################################################
+                                                                          #
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)      #
+                                                                          #
+library(tidyverse)                                                        #
+library(ggthemes)                                                         #
+library(dplyr)                                                            #
+library(ggplot2)                                                          #
+library(ggpubr)                                                           #
+                                                                          # 
+theme_set(                                                                #
+  theme_tufte() +                                                         #
+  theme(text=element_text(family="sans")) +                               #
+  theme(axis.text.x = element_text(angle=-90))                            #
+  )                                                                       #
+                                                                          #
+                                                                          #
+                                                                          #
+PolData <- read.csv("political-data.csv")                                 #
+                                                                          #
+                                                                          #
+                                                                          #
+                                                                          #
+############# ^ ################################# ^ #######################
+############# | ## DON'T DELETE THIS PART!!!!!### | #######################
+############# | ################################# | #######################
+```
+
+# The Data 
+
+The dataset for this lab (download here) contains the responses from 3,906 American users of the “Show of Hands” app for iPhone and Android. On the app, users answer questions about a variety of socioeconomic questions ranging from gender, income, and political party to more esoteric questions like “Does life have a purpose?” or “Are you left-handed?”. For this lab, you may assume that this dataset represents our entire population in question.
+
+# The Lab
+
+Your goal is to study the distribution of political affiliation for a category that you’re interested in. Available options for this lab are: Income, Household Status, or Education Level. You may pick any one of these three to study.
+
+- Make a sample for each level of your category of interest (about 6).
+
+- Construct and intepret 50% CIs, 95% CIs, and 99% CIs for political affiliation for each sample. Check to see which ones worked.
+
+- Present your results in a polished report.
+
+
+```{r}
+
+# Filter The Data 
+BachelorDegree <- PolData %>% filter(EducationLevel == "Bachelor's Degree" )
+HighSchool <- PolData %>% filter(EducationLevel == "High School Diploma" )
+K12 <- PolData %>% filter(EducationLevel == "Current K-12" )
+CurrentUndergraduate <- PolData %>% filter(EducationLevel == "Current Undergraduate" )
+MasterDegree <- PolData %>% filter(EducationLevel == "Master's Degree" )
+AssociateDegree <- PolData %>% filter(EducationLevel == "Associate's Degree" )
+DoctoralDegree <- PolData %>% filter(EducationLevel == "Doctoral Degree" )
+
+
+```
+
+```{r}
+
+# Take Samples 
+
+BachelorDegreeSample <- sample(BachelorDegree$Party, 50)
+HighSchoolSample <- sample(HighSchool$Party, 50)
+K12Sample <- sample(K12$Party, 50)
+CurrentUndergraduateSample <- sample(CurrentUndergraduate$Party, 50)
+MasterDegreeSample <- sample(MasterDegree$Party, 50)
+AssociateDegreeSample <- sample(AssociateDegree$Party, 50)
+DoctoralDegreeSample <- sample(DoctoralDegree$Party, 50)
+
+
+
+```
+
+```{r}
+
+# Sample Proportion 
+phat_BachelorDegree <-sum(BachelorDegreeSample == "Democrat")/50
+phat_HighSchool <-sum(HighSchoolSample == "Democrat")/50
+phat_K12 <-sum(K12Sample == "Democrat")/50
+phat_CurrentUndergraduate <-sum(CurrentUndergraduateSample == "Democrat")/50
+phat_MasterDegree <-sum(MasterDegreeSample == "Democrat")/50
+phat_AssociateDegree <-sum(AssociateDegreeSample == "Democrat")/50
+phat_DoctoralDegree <-sum(DoctoralDegreeSample == "Democrat")/50
+
+
+```
+
+```{r}
+
+# True Proportions 
+prop_BachelorDegree <- sum(BachelorDegree == "Democrat")/nrow(BachelorDegree)
+prop_HighSchool <- sum(HighSchool == "Democrat")/nrow(HighSchool)
+prop_K12 <- sum(K12 == "Democrat")/nrow(K12)
+prop_CurrentUndergraduate <- sum(CurrentUndergraduate == "Democrat")/nrow(CurrentUndergraduate)
+prop_MasterDegree <- sum(MasterDegree == "Democrat")/nrow(MasterDegree)
+prop_AssociateDegree <- sum(AssociateDegree == "Democrat")/nrow(AssociateDegree)
+prop_DoctoralDegree <- sum(DoctoralDegree == "Democrat")/nrow(DoctoralDegree)
+
+
+```
+
+```{r}
+
+## BachelorDegree 
+###lower50BachelorDegree 
+lower50BachelorDegree <- phat_BachelorDegree - 0.67449*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+##upper5BachelorDegree 
+upper50BachelorDegree <- phat_BachelorDegree + 0.67449*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+###lower95BachelorDegree 
+lower95BachelorDegree <- phat_BachelorDegree - 1.96*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+###upper95BachelorDegree 
+upper95BachelorDegree <- phat_BachelorDegree + 1.96*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+###lower99BachelorDegree 
+lower99BachelorDegree <- phat_BachelorDegree - 2.576*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+##upper99BachelorDegree 
+upper99BachelorDegree <- phat_BachelorDegree + 2.576*sqrt(phat_BachelorDegree*(1-phat_BachelorDegree)/50)
+
+
+BachelorDegreeCI50 <- c("Bachelor Degree", round(lower50BachelorDegree,3), round(upper50BachelorDegree,3), round(prop_BachelorDegree, 3))
+
+BachelorDegreeCI95 <- c("Bachelor Degree", round(lower95BachelorDegree,3), round(upper95BachelorDegree,3), round(prop_BachelorDegree, 3)) 
+
+BachelorDegreeCI99 <- c("Bachelor Degree", round(lower99BachelorDegree,3), round(upper99BachelorDegree,3), round(prop_BachelorDegree, 3))
+
+
+
+```
+
+```{r}
+
+## Highschool 
+###lower50
+lower50HighSchool <- phat_HighSchool - 0.67449*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+##upper50 
+upper50HighSchool <- phat_HighSchool + 0.67449*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+###lower95
+lower95HighSchool <- phat_HighSchool - 1.96*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+###upper95
+upper95HighSchool <- phat_HighSchool + 1.96*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+###lower99
+lower99HighSchool <- phat_HighSchool - 2.576*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+##upper99 
+upper99HighSchool <- phat_HighSchool + 2.576*sqrt(phat_HighSchool*(1-phat_HighSchool)/50)
+
+HighSchoolCI50 <- c("High School", round(lower50HighSchool,3), round(upper50HighSchool,3), round(prop_HighSchool, 3))
+
+HighSchoolCI95 <- c("High School", round(lower95HighSchool,3), round(upper95HighSchool,3), round(prop_HighSchool, 3))
+
+HighSchoolCI99 <- c("High School", round(lower99HighSchool,3), round(upper99HighSchool,3), round(prop_HighSchool, 3))
+
+
+
+```
+
+```{r}
+
+## phat_K12
+###lower50
+lower50K12 <- phat_K12 - 0.67449*sqrt(phat_K12*(1-phat_K12)/50)
+##upper50 
+upper50K12 <- phat_K12 + 0.67449*sqrt(phat_K12*(1-phat_K12)/50)
+###lower95
+lower95K12 <- phat_K12 - 1.96*sqrt(phat_K12*(1-phat_K12)/50)
+###upper95
+upper95K12 <- phat_K12 + 1.96*sqrt(phat_K12*(1-phat_K12)/50)
+###lower99
+lower99K12 <- phat_K12 - 2.576*sqrt(phat_K12*(1-phat_K12)/50)
+##upper99 
+upper99K12 <- phat_K12 + 2.576*sqrt(phat_K12*(1-phat_K12)/50)
+
+K12CI50 <- c("K-12 ", round(lower50K12,3) ,round(upper50K12,3), round(prop_K12, 3))
+
+K12CI95 <- c("K-12 ", round(lower95K12,3),round(upper95K12,3), round(prop_K12, 3))
+
+K12CI99 <- c("K-12 ", round(lower99K12,3) ,round(upper99K12,3), round(prop_K12, 3))
+
+```
+
+```{r}
+
+## prop_CurrentUndergraduate
+###lower50
+lower50Undergraduate <- phat_CurrentUndergraduate - 0.67449*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+##upper50
+upper50Undergraduate <- phat_CurrentUndergraduate + 0.67449*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+###lower95
+lower95Undergraduate <- phat_CurrentUndergraduate - 1.96*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+###upper95
+upper95Undergraduate <- phat_CurrentUndergraduate + 1.96*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+###lower99
+lower99Undergraduate <- phat_CurrentUndergraduate - 2.576*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+##upper99 
+upper99Undergraduate <- phat_CurrentUndergraduate + 2.576*sqrt(phat_CurrentUndergraduate*(1-phat_CurrentUndergraduate)/50)
+
+CurrentUndergraduateCI50 <- c("Current Undergraduate", round(lower50Undergraduate,3) , round(upper50Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+CurrentUndergraduateCI95 <- c("Current Undergraduate", round(lower95Undergraduate,3),round(upper95Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+CurrentUndergraduateCI99 <- c("Current Undergraduate", round(lower99Undergraduate,3) , round(upper99Undergraduate,3), round(prop_CurrentUndergraduate, 3))
+
+```
+
+```{r}
+
+## prop_MasterDegree
+###lower50
+lower50Master <- phat_MasterDegree - 0.67449*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+##upper50 
+upper50Master <- phat_MasterDegree + 0.67449*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+###lower95
+lower95Master <- phat_MasterDegree - 1.96*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+###upper95
+upper95Master <- phat_MasterDegree + 1.96*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+###lower99
+lower99Master <- phat_MasterDegree - 2.576*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+##upper99 
+upper99Master <- phat_MasterDegree + 2.576*sqrt(phat_MasterDegree*(1-phat_MasterDegree)/50)
+
+MasterDegreeCI50 <- c("Master Degree",round( lower50Master,3),round(upper50Master,3), round(prop_MasterDegree, 3))
+
+MasterDegreeCI95 <- c("Master Degree",round( lower95Master,3),round(upper95Master,3), round(prop_MasterDegree, 3))
+
+MasterDegreeCI99 <-c("Master Degree", round(lower99Master,3),round(upper99Master,3), round(prop_MasterDegree, 3))
+
+```
+
+```{r}
+
+## prop_AssociateDegree
+###lower50
+lower50Associate <- phat_AssociateDegree - 0.67449*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+###upper50
+upper50Associate <- phat_AssociateDegree + 0.67449*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+###lower95
+lower95Associate <- phat_AssociateDegree - 1.96*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+###upper95
+upper95Associate <- phat_AssociateDegree + 1.96*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+###lower99
+lower99Associate <- phat_AssociateDegree - 2.576*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+##upper99 
+upper99Associate <- phat_AssociateDegree + 2.576*sqrt(phat_AssociateDegree*(1-phat_AssociateDegree)/50)
+
+
+AssociateDegreeCI50 <- c("AssociateDegree", round(lower50Associate,3),round(upper50Associate,3), round(prop_AssociateDegree, 3))
+
+AssociateDegreeCI95 <- c("AssociateDegree", round(lower95Associate,3),round(upper95Associate,3), round(prop_AssociateDegree, 3))
+
+AssociateDegreeCI99 <- c("AssociateDegree",round(lower99Associate,3),round(upper99Associate,3), round(prop_AssociateDegree, 3))
+
+```
+
+```{r}
+
+## prop_DoctoralDegree
+###lower50
+lower50Doctoral <- phat_DoctoralDegree - 0.67449*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+###upper50
+upper50Doctoral <- phat_DoctoralDegree + 0.67449*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+###lower95
+lower95Doctoral <- phat_DoctoralDegree - 1.96*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+###upper95
+upper95Doctoral <- phat_DoctoralDegree + 1.96*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+###lower99
+lower99Doctoral <- phat_DoctoralDegree - 2.576*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+##upper99 
+upper99Doctoral <- phat_DoctoralDegree + 2.576*sqrt(phat_DoctoralDegree*(1-phat_DoctoralDegree)/50)
+
+DoctoralDegreeCI50 <- c("Doctoral Degree", round(lower50Doctoral, 3),round(upper50Doctoral, 3), round(prop_DoctoralDegree, 3))
+
+DoctoralDegreeCI95 <- c("Doctoral Degree", round(lower95Doctoral, 3),round(upper95Doctoral, 3), round(prop_DoctoralDegree, 3))
+
+DoctoralDegreeCI99 <- c("Doctoral Degree", round(lower99Doctoral, 3),round(upper99Doctoral, 3), round(prop_DoctoralDegree, 3))
+
+```
+
+
+```{r}
+
+levelCI50 <- t(cbind(BachelorDegreeCI50, HighSchoolCI50, K12CI50, CurrentUndergraduateCI50, MasterDegreeCI50, AssociateDegreeCI50, DoctoralDegreeCI50))
+
+levelCI50 <- as.data.frame(levelCI50)
+col_headings <- c("Education Level","50% CI lower", "50% CI upper",  "True Population Proportion")
+names(levelCI50) <- col_headings
+
+table50 <- ggtexttable(levelCI50, rows = NULL, 
+                        theme = ttheme("mGreen"))
+
+```
+
+
+
+```{r}
+
+levelCI95 <- t(cbind(BachelorDegreeCI95, HighSchoolCI95, K12CI95, CurrentUndergraduateCI95, MasterDegreeCI95, AssociateDegreeCI95, DoctoralDegreeCI95))
+
+levelCI95 <- as.data.frame(levelCI95)
+col_headings <- c("Education Level","95% CI lower", "95% CI upper", "True Population Proportion")
+names(levelCI95) <- col_headings
+
+table95 <- ggtexttable(levelCI95, rows = NULL, 
+                        theme = ttheme("mRed"))
+
+
+```
+
+```{r}
+
+levelCI99 <- t(cbind(BachelorDegreeCI99, HighSchoolCI99, K12CI99, CurrentUndergraduateCI99, MasterDegreeCI99, AssociateDegreeCI99, DoctoralDegreeCI99))
+
+levelCI99 <- as.data.frame(levelCI99)
+col_headings <- c("Education Level","99% CI lower", "99% CI upper", "True Population Proportion")
+names(levelCI99) <- col_headings
+
+table99 <- ggtexttable(levelCI99, rows = NULL, 
+                        theme = ttheme("mBlue"))
+
+```
+
+```{r}
+
+chart50 <- ggplot()+
+  geom_line(aes(x = c(lower50BachelorDegree ,upper50BachelorDegree), y = "Bachelor Degree"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50HighSchool ,upper50HighSchool), y = "High School"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50Undergraduate	,upper50Undergraduate), y = "Current Undergraduate"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50Master ,upper50Master), y = "Master Degree"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50Associate ,upper50Associate), y = "Associat eDegree"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50Doctoral ,upper50Doctoral), y = "Doctoral Degree"), color = "darkgreen")+
+  geom_line(aes(x = c(lower50K12 ,upper50K12), y = "K-12"), color = "darkgreen")+
+  geom_point(aes(x = prop_BachelorDegree, y= "Bachelor Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_HighSchool, y= "High School"), color = "red", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Current Undergraduate"), color = "red", size = 5)+
+  geom_point(aes(x = prop_MasterDegree, y= "Master Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_AssociateDegree, y= "Associat eDegree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_DoctoralDegree, y= "Doctoral Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_K12, y= "K-12"), color = "red", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab("Education Levels")+
+  theme_minimal()
+
+
+```
+
+```{r}
+
+chart95 <- ggplot()+
+  geom_line(aes(x = c(lower95BachelorDegree ,upper95BachelorDegree), y = "Bachelor Degree"), color = "red")+
+  geom_line(aes(x = c(lower95HighSchool ,upper95HighSchool), y = "High School"), color = "red")+
+  geom_line(aes(x = c(lower95Undergraduate	,upper95Undergraduate), y = "Current Undergraduate"), color = "red")+
+  geom_line(aes(x = c(lower95Master ,upper95Master), y = "Master Degree"), color = "red")+
+  geom_line(aes(x = c(lower95Associate ,upper95Associate), y = "Associat eDegree"), color = "red")+
+  geom_line(aes(x = c(lower95Doctoral ,upper95Doctoral), y = "Doctoral Degree"), color = "red")+
+  geom_line(aes(x = c(lower95K12 ,upper95K12), y = "K-12"), color = "red")+
+  geom_point(aes(x = prop_BachelorDegree, y= "Bachelor Degree"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_HighSchool, y= "High School"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Current Undergraduate"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_MasterDegree, y= "Master Degree"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_AssociateDegree, y= "Associat eDegree"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_DoctoralDegree, y= "Doctoral Degree"), color = "blue", size = 5)+
+  geom_point(aes(x = prop_K12, y= "K-12"), color = "blue", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab("Education Levels")+
+  theme_minimal()
+
+  
+```
+
+```{r}
+
+Chart99 <- ggplot()+
+  geom_line(aes(x = c(lower99BachelorDegree ,upper99BachelorDegree), y = "Bachelor Degree"), color = "blue")+
+  geom_line(aes(x = c(lower99HighSchool ,upper99HighSchool), y = "High School"), color = "blue")+
+  geom_line(aes(x = c(lower99Undergraduate	,upper99Undergraduate), y = "Current Undergraduate"), color = "blue")+
+  geom_line(aes(x = c(lower99Master ,upper99Master), y = "Master Degree"), color = "blue")+
+  geom_line(aes(x = c(lower99Associate ,upper99Associate), y = "Associat eDegree"), color = "blue")+
+  geom_line(aes(x = c(lower99Doctoral ,upper99Doctoral), y = "Doctoral Degree"), color = "blue")+
+  geom_line(aes(x = c(lower99K12 ,upper99K12), y = "K-12"), color = "blue")+
+  geom_point(aes(x = prop_BachelorDegree, y= "Bachelor Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_HighSchool, y= "High School"), color = "red", size = 5)+
+  geom_point(aes(x = prop_CurrentUndergraduate, y= "Current Undergraduate"), color = "red", size = 5)+
+  geom_point(aes(x = prop_MasterDegree, y= "Master Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_AssociateDegree, y= "Associat eDegree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_DoctoralDegree, y= "Doctoral Degree"), color = "red", size = 5)+
+  geom_point(aes(x = prop_K12, y= "K-12"), color = "red", size = 5)+
+  xlab("Confidance Interval Range")+
+  ylab("Education Levels")+
+  theme_minimal()
+
+
+```
+
+## 50% Confidence Interval of Democratic Affiliation
+
+```{r}
+
+ggarrange(chart50,table50, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("50% Confidence Interval")
+
+```
+
+**Interpretation:** When we observe the 50% CI for our prediction of Democratic affiliation we see that this prediction is not very accurate. For Highschool, Bachelor and Associate Degree, our actual population proportion is not within our CI. This is reasonable as we would only be 50% confident that our actual population is within the predicted interval. This is concerning as it does not give us an accurate reading of our sample. What suprized me the most was that our High school education level CI is quite far away from our actual population. This is why we can not truly trust a 50% CI. 
+
+
+## 95% Confidence Interval of Democratic Affiliation
+
+```{r}
+
+ggarrange(chart95,table95, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("95% Confidence Interval")
+
+```
+
+**Interpretation:** Compared to our 50% CI, the 95% Confidence interval is within range of our actual sample, however there is a much greater range. In addition for the predicted values of High school and Bachel Degree democratic affiliation, we see that it is right on the edge of the Confidence Interval. Although this is not a direct problem as it is still within the Confidence Interval. I am once again suprized at how far the high school CI ranges from as it seems to be the largest range of CI out of the group. 
+
+## 99% Confidence Interval of Democratic Affiliation
+
+```{r}
+
+ggarrange(Chart99,table99, 
+          nrow=2, 
+          heights = c(2, 2))+
+  ggtitle("99% Confidence Interval")
+
+```
+
+**Interpretation:** The 99% Confidence iterval encompasses the population quite well. This is of course because we are 99% confident that our population is actually within the range. The population value is not close to the edges but rather in the center for most of the Education Level variables. However the downside to this is that the ranges are quite large. There are always trade offs to each of the different kinds of CI but we can see that we can accuratly encompass the true population within the Confidence Interval which is what we are trying to do. The difference between 50% and 95% was drastic as there is a larger difference, yet the difference between 95% and 99% was not so great. 
+
